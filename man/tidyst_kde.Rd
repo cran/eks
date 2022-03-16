@@ -71,12 +71,12 @@ gt3 + ggplot2::geom_density_2d_filled(bins=4, colour=1) +
     ggplot2::guides(fill=ggplot2::guide_legend(title="Density", reverse=TRUE))
 
 ## facet wrapped geom_sf plot with fixed contour levels for all facets
-## each facet = height group
 \donttest{
 crabs3 <- dplyr::select(crabs, FL, CW, sex)
 t3 <- tidy_kde(dplyr::group_by(crabs3, sex))
+b <- contour_breaks(t3)
 gt3 <- ggplot2::ggplot(t3, ggplot2::aes(x=FL, y=CW)) 
-gt3 + geom_contour_filled_ks(colour=1) + 
+gt3 + geom_contour_filled_ks(colour=1, breaks=b) + 
     colorspace::scale_fill_discrete_sequential() +
     ggplot2::facet_wrap(~sex)
 

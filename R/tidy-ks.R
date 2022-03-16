@@ -455,9 +455,9 @@ tidy_kfs <- function(data, ...) { .tidy_kfs(data, ...) }
         x <- dplyr::pull(y, "ks")[[1]]
         fhat2 <- x
         if (d==1)
-            fhat2$estimate <- kde(x=x$x, eval.points=x$eval.points)$estimate
+            fhat2$estimate <- ks::kde(x=x$x, eval.points=x$eval.points)$estimate
         else
-            fhat2$estimate <- kde(x=x$x, eval.points=expand.grid(x$eval.points))$estimate
+            fhat2$estimate <- ks::kde(x=x$x, eval.points=expand.grid(x$eval.points))$estimate
         class(fhat2) <- "kde"
         fhat.tidy <- compute.tidy(fhat2, d=d, tidy=FALSE)
         signif.group <- factor(x$estimate, levels=c(0,1), labels=c(NA,"Signif curv"))

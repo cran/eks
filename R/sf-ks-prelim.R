@@ -99,6 +99,7 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
     legend <- legend & !(oc %in% c("ksupp"))
     if (legend)
     {
+        
         forms <- list(...)
         forms <- forms[names(forms) %in% names(formals(mf_legend_t))]
         gu <- guides_ks(dplyr::add_row(dplyr::ungroup(x$tidy_ks), ks=list(2L)))
@@ -108,7 +109,8 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
         
         if (!(oc %in% "kda"))
         {
-            contlabel <- paste0(sort(unique(y$contlabel),decreasing=TRUE),"%")
+            contlabel <- sort(unique(y$contlabel),decreasing=TRUE)
+            if (missing(breaks)) contlabel <- paste0(contlabel,"%")
             nc <- length(contlabel)
         }
 
@@ -125,7 +127,11 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
                 ng <- length(gv)
                 do.call("mfls", args=c(list(val=gv, pal=unique(forms$border), title=gu.title, pt_cex=rep(3,ng), pt_pch=rep("-", ng)), forms))
             }
-            else do.call("mfls", args=c(list(val=contlabel, pal=rev(forms$border), title=gu.title, pt_cex=rep(3,nc), pt_pch=rep("-", nc)), forms))
+            else 
+            {
+                if (!is.na(forms$border)) do.call("mfls", args=c(list(val=contlabel, pal=rev(forms$border), title=gu.title, pt_cex=rep(3,nc), pt_pch=rep("-", nc)), forms)) 
+                else do.call("mflt", args=c(list(val=contlabel, pal=pal(nc), title=gu.title), forms)) 
+            }
         }
         else if (!missing(col))
         {
@@ -134,6 +140,7 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
         }
         else if (!missing(pal)) 
         {
+        
             if (oc %in% "kms") 
             {
                 gv <- levels(dplyr::pull(sf::st_drop_geometry(y), .data$label))
@@ -366,6 +373,7 @@ st_difference_sequence <- function(x, headtail=TRUE)
     	if (length(cont.polygon)==0) cont.polygon <- sf::st_polygon()
         cont.polygon <- sf::st_sfc(cont.polygon)
     	cont.polygon <- sf::st_cast(cont.polygon, to="POLYGON")
+        cont.polygon <- cont.polygon[sf::st_is_valid(cont.polygon)]
     	cont.polygon <- dplyr::summarise(sf::st_sf(data.frame(x=1,cont.polygon)))
         
         if (abs.cont.flag) 

@@ -710,7 +710,7 @@ GeomContourFilledKs <- ggplot2::ggproto("GeomContourFilled", GeomContourFilled)
 
 stat_contour_filled_ks <- function(mapping=NULL, data=NULL, geom="contour_filled_ks", position="identity", ..., cont=c(25,50,75), label_percent=NULL, breaks=NULL, show.legend=NA, inherit.aes=TRUE)
 {
-    ggplot2::layer(data=data, mapping=mapping, stat=StatContourFilledKs, geom=geom, position=position, show.legend=show.legend, inherit.aes=inherit.aes,  params=list(breaks=ggplot2::after_stat(breaks), na.rm=FALSE, ...))
+    ggplot2::layer(data=data, mapping=mapping, stat=StatContourFilledKs, geom=geom, position=position, show.legend=show.legend, inherit.aes=inherit.aes,  params=list(breaks=breaks, na.rm=FALSE, ...))
 }
 
 ## replaces ggplot2::StatContourFilled

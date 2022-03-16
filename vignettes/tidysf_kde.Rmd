@@ -204,4 +204,6 @@ gsg + geom_sf(data=st_get_contour(skde1g, breaks=bkde1g), aes(fill=contlabel)) +
 
 ## References
 
-Chacon, J. E. and Duong, T. (2018). Multivariate Kernel Smoothing and Its Applications. Chapman & Hall/CRC Press, Boca Raton.
+Chacon, J. E. and Duong, T. (2018). _Multivariate Kernel Smoothing and Its Applications._ Chapman & Hall/CRC Press, Boca Raton.
+
+Duong, T. (2022) _Statistical visualisation for tidy and geospatial data in R via kernel smoothing methods in the eks package_. https://doi.org/10.48550/arXiv.2203.01686

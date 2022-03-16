@@ -1,4 +1,9 @@
 Change log file for eks
 
+1.0.1
+-Fixed bugs in legend in plot method for sf_ks objects.
+-Added arXiv DOI.
+-Removed invalid polygons in in .st_contourline(). 
+
 1.0.0
--Initial pubic release.
+-Initial public release.

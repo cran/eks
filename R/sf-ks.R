@@ -426,7 +426,7 @@ st_ksupp <- function(x, cont=95, convex_hull=TRUE, ...)
 {
     ## compute kernel support estimate
     fhat <- x$tidy_ks 
-    fhat.tidy <- .tidy_ksupp(fhat, rename=FALSE)
+    fhat.tidy <- .tidy_ksupp(fhat, rename=FALSE, convex_hull=convex_hull, ...)
     fhat.tidy <- dplyr::slice_head(fhat.tidy)
     fhat.tidy <- dplyr::select(fhat.tidy, -dplyr::one_of(c("x","y","estimate")))
 

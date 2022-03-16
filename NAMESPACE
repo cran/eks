@@ -1,6 +1,5 @@
-importFrom(dplyr, .data, arrange, as_tibble, enquo, group_by, group_by_at, group_indices, filter, group_modify, groups, left_join, mutate, one_of, pull, relocate, rename, select, slice_head, summarise, sym, tibble, ungroup, vars)
-importFrom(FNN, get.knnx)
-importFrom(ggplot2, ggplot, GeomContour, GeomContourFilled, GeomPoint, GeomRug, StatContour, StatContourFilled, aes, after_stat, guide_legend, guides, labs, unit)
+importFrom(dplyr, .data, arrange, as_tibble, enquo, group_by, group_indices, filter, group_modify, groups, left_join, mutate, one_of, pull, relocate, rename, select, slice_head, summarise, sym, tibble, ungroup, vars)
+importFrom(ggplot2, ggplot, GeomContour, GeomContourFilled, GeomPoint, GeomRug, StatContour, StatContourFilled, aes, guide_legend, guides, labs, unit)
 importFrom(graphics, image)
 importFrom(grDevices, contourLines)
 importFrom(isoband, isobands, isolines)

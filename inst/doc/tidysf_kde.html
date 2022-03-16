@@ -12,7 +12,7 @@
 
 <meta name="author" content="Tarn Duong https://mvstat.net/tduong/" />
 
-<meta name="date" content="2022-02-10" />
+<meta name="date" content="2022-03-16" />
 
 <title>Kernel density estimates for tidy and geospatial data in the eks package</title>
 
@@ -25,6 +25,7 @@
   div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
   ul.task-list{list-style: none;}
     </style>
+
 
 
 <style type="text/css">
@@ -318,7 +319,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Kernel density estimates for tidy and geospatial data in the eks package</h1>
 <h4 class="author">Tarn Duong <a href="https://mvstat.net/tduong/" class="uri">https://mvstat.net/tduong/</a></h4>
-<h4 class="date">10 February 2022</h4>
+<h4 class="date">16 March 2022</h4>
 
 
 
@@ -459,7 +460,7 @@ gs + geom_density_2d_filled(data=data.frame(st_coordinates(paradoxa)),
    scale_fill_discrete_sequential(h1=275) + coord_sf(xlim=xlim, ylim=ylim)
 ```
 
-<img src="/tmp/RtmpCLfz8L/Rbuild343e15e643465/eks/vignettes/tidysf_kde_files/figure-html/unnamed-chunk-15-1.png" style="display: block; margin: auto;" />
+<img src="/tmp/RtmpnnAhnr/Rbuild354b4499ea198/eks/vignettes/tidysf_kde_files/figure-html/unnamed-chunk-15-1.png" style="display: block; margin: auto;" />
 !-->
 <p>Since the output from <code>st_kde</code> is compatible with <code>geom_sf</code>, then it is easy to generate multiple maps of related geospatial KDEs. For example, KDEs for each Grevillea species, with probability contour levels or with fixed contour levels:</p>
 <div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" title="1">skde1g &lt;-<span class="st"> </span><span class="kw">st_kde</span>(grevillea_ep)</a>
@@ -479,7 +480,8 @@ gs + geom_density_2d_filled(data=data.frame(st_coordinates(paradoxa)),
 </div>
 <div id="references" class="section level2">
 <h2>References</h2>
-<p>Chacon, J. E. and Duong, T. (2018). Multivariate Kernel Smoothing and Its Applications. Chapman &amp; Hall/CRC Press, Boca Raton.</p>
+<p>Chacon, J. E. and Duong, T. (2018). <em>Multivariate Kernel Smoothing and Its Applications.</em> Chapman &amp; Hall/CRC Press, Boca Raton.</p>
+<p>Duong, T. (2022) <em>Statistical visualisation for tidy and geospatial data in R via kernel smoothing methods in the eks package</em>. <a href="https://doi.org/10.48550/arXiv.2203.01686" class="uri">https://doi.org/10.48550/arXiv.2203.01686</a></p>
 </div>
 
 
