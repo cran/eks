@@ -18,7 +18,6 @@ st_kroc(x1, x2, ...)
     \item{...}{other parameters in \code{ks::kroc} function}
 }
   
-
 \value{
     The output has the same structure as the 1-d kernel distribution estimate from \code{\link[=st_kcde]{*_kcde}}, except that \code{fpr} (\eqn{x}{x}-variable) is the false positive rate (complement of specificity) and \code{estimate} is the true positive rate (sensitivity), rather than the usual estimation grid points and cdf values. 
 }
@@ -40,7 +39,7 @@ t1 <- tidy_kroc(data1=hsct6, data2=hsct12)
 gt <- ggplot2::ggplot(t1, ggplot2::aes(x=fpr)) 
 gt + ggplot2::geom_line(colour=1) 
 
-## geospatial local test between Grevillea species
+## geospatial ROC curve between Grevillea species
 data(wa)
 data(grevilleasf)
 hakeoides <- dplyr::filter(grevilleasf, species=="hakeoides")

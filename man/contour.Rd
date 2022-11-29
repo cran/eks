@@ -4,7 +4,6 @@
 \alias{contourLevels.sf_ks}
 \alias{st_get_contour}
 \alias{label_percent}
-
 \title{Contour functions for tidy and geospatial kernel estimates}
 
 \description{
@@ -37,9 +36,9 @@ st_get_contour(x, cont=c(25,50,75), breaks, which_deriv_ind, disjoint=TRUE,
 }
 
 \details{
-    For both \code{tidy_ks} and \code{st_ks} objects, it may be required to compute contours at given heights, e.g. to produce a contour plot with fixed contour levels across all groups. It may require trial and error to obtain a single set of contour levels which is appropriate for all groups: one possible choice is provided by \code{contour_breaks}. %\code{contour_breaks} is a convenience function which dispatches the \code{ks::contourLevels} S3 method appropriately for \code{tidy_ks} and \code{sf_ks} objects.
-
     By default, the 1\% to 99\% contours are computed for an \code{st_k*} output, though a plot of all 99 of them would be too crowded. \code{st_get_contour} selects a subset of these, as specified by \code{cont}. If a contour level in \code{cont} does not already exist or if absolute contour levels are specified in \code{breaks}, then the corresponding contours are computed. If \code{disjoint=TRUE} (default) then the contours are computed as a set of disjoint multipolygons: this allows for plotting without overlapping transparent colours. If \code{disjoint=FALSE} then the contours are overlapping and so their colours alpha-mixed, but they strictly satisfy the probabilistic definition, e.g. a 25\% contour region is the smallest region that contains 25\% of the probability mass defined by the kernel estimate, see \code{\link{geom_contour_ks}}.
+
+    Since these default probability contours are relative contour levels, they aren't suitable for producing a contour plot with fixed contour levels across all groups. It may require trial and error to obtain a single set of contour levels which is appropriate for all groups: one possible choice is provided by \code{contour_breaks}. 
 }
 
 \seealso{\code{\link{geom_contour_ks}}}
@@ -66,7 +65,5 @@ ggplot2::ggplot(t2, ggplot2::aes(x=FL, y=CW)) +
     ggplot2::guides(fill=ggplot2::guide_legend(reverse=TRUE)) + 
     ggplot2::facet_wrap(~sex)} 
 }
-
-
 
 \keyword{smooth}

@@ -1,7 +1,6 @@
 \name{tidyst_kda}
 \alias{tidy_kda}
 \alias{st_kda}
-
 \title{Tidy and geospatial kernel discrimination analysis (classification)}
 
 \description{
@@ -19,7 +18,6 @@ st_kda(x, ...)
     \item{...}{other parameters in \code{ks::kda} function}
 }
   
-
 \value{
     --For \code{tidy_kda}, the output is an object of class \code{tidy_ks}, which is a tibble with columns: 
     \item{x}{evaluation points in x-axis (name is taken from 1st input variable in \code{data})}
@@ -61,7 +59,7 @@ cardio.train2 <- dplyr::select(cardio.train, ASTV, Mean, NSP)
 t1 <- tidy_kda(cardio.train1) 
 gt1 <- ggplot2::ggplot(t1, ggplot2::aes(x=ASTV)) 
 gt1 + ggplot2::geom_line(ggplot2::aes(colour=NSP)) + 
-    ggplot2::geom_rug(ggplot2::aes(colour=label), sides="b", size=1.5) +
+    ggplot2::geom_rug(ggplot2::aes(colour=label), sides="b", linewidth=1.5) +
     ggplot2::scale_colour_brewer(palette="Dark2", na.translate=FALSE) 
 
 \donttest{## tidy 2-d classification
@@ -87,20 +85,21 @@ s1$grid <- s1$grid[sf::st_intersects(s1$grid,
 ## base R plot
 xlim <- c(1.2e5, 1.1e6); ylim <- c(6.1e6, 7.2e6)
 plot(wa, xlim=xlim, ylim=ylim)
-plot(s1, which_geometry="grid", add=TRUE, border=NA)
-plot(s1, add=TRUE, lwd=2, border=rep(colorspace::qualitative_hcl(palette="Dark2", n=2, 
-    alpha=0.5, rev=TRUE), each=3))
+plot(s1, which_geometry="grid", add=TRUE, border=NA, legend=FALSE)
+plot(s1, add=TRUE, lwd=2, border=rep(colorspace::qualitative_hcl(
+    palette="Dark2", n=2, alpha=0.5), each=3))
 
 ## geom_sf plot
 gs1 <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA) + 
     ggplot2::geom_sf(data=dplyr::mutate(s1$grid, species=label), 
-    ggplot2::aes(fill=species), alpha=0.1, colour=NA) 
-gs1 + ggplot2::geom_sf(data=st_get_contour(s1), ggplot2::aes(colour=species), fill=NA) +
+    ggplot2::aes(fill=species), alpha=0.1, colour=NA) + 
+    ggthemes::theme_map()
+gs1 + ggplot2::geom_sf(data=st_get_contour(s1), 
+    ggplot2::aes(colour=species), fill=NA) +
     colorspace::scale_colour_discrete_qualitative(palette="Dark2") +
     colorspace::scale_fill_discrete_qualitative(palette="Dark2") +
     ggplot2::facet_wrap(~species) +
-    ggplot2::coord_sf(xlim=xlim, ylim=ylim) + 
-    ggthemes::theme_map()}
+    ggplot2::coord_sf(xlim=xlim, ylim=ylim)}
 }
 
 \keyword{smooth}

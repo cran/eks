@@ -2,10 +2,11 @@
 \alias{geom_point_ks}
 \alias{stat_point_ks}
 \alias{geom_rug_ks}
+\alias{stat_rug_ks}
 \alias{GeomPointKs}
 \alias{GeomRugKs}
 \alias{StatPointKs}
-
+\alias{StatRugKs}
 \title{Rug and scatter plots for tidy kernel estimates}
 
 \description{
@@ -17,9 +18,11 @@ geom_point_ks(mapping=NULL, data=NULL, stat="point_ks", position="identity",
     ..., na.rm=FALSE, jitter=FALSE, show.legend=NA, inherit.aes=TRUE) 
 stat_point_ks(mapping=NULL, data=NULL, geom="point_ks", position="identity", 
     ..., na.rm=FALSE, show.legend=NA, inherit.aes=TRUE)
-geom_rug_ks(mapping=NULL, data=NULL, stat="point_ks", position="identity", 
+geom_rug_ks(mapping=NULL, data=NULL, stat="rug_ks", position="identity", 
     ..., outside=FALSE, sides="bl", length=unit(0.03, "npc"), na.rm=FALSE, 
-    jitter=FALSE, show.legend=NA, inherit.aes=TRUE)    
+    jitter=FALSE, show.legend=NA, inherit.aes=TRUE) 
+stat_rug_ks(mapping=NULL, data=NULL, geom="rug_ks", position="identity", 
+    ..., na.rm=FALSE, show.legend=NA, inherit.aes=TRUE)   
 }
 
 \arguments{
@@ -84,9 +87,8 @@ the default plot specification, e.g. \code{borders()}.}
     Similar output as the standard layer functions \code{ggplot2::geom_point}, \code{ggplot2::geom_rug} and \code{ggplot2::stat_point}.
 }
 
-
 \details{
-    These layer functions are modifications of the standard layer functions \code{ggplot2::geom_point}, \code{ggplot2::rug} and \code{ggplot2::stat_point}. Their usage and output are similar, except that they require a tidy kernel estimate as the input, rather than the observations themselves. For most cases, \code{geom_rug_ks} is equivalent to \code{geom_rug(stat="point_ks")}, and likewise for \code{geom_point_ks}. 
+    These layer functions are modifications of the standard layer functions \code{ggplot2::geom_point}, \code{ggplot2::geom_rug} and \code{ggplot2::stat_point}. Their usage and output are similar, except that they require a tidy kernel estimate as the input, rather than the observations themselves. For most cases, \code{geom_rug_ks} is equivalent to \code{geom_rug(stat="rug_ks")}, and likewise for \code{geom_point_ks}. 
 }
 
 \examples{
@@ -97,7 +99,7 @@ crabs1 <- dplyr::select(crabs, FL)
 t1 <- tidy_kde(crabs1)
 g1 <- ggplot2::ggplot(t1, ggplot2::aes(x=FL)) + ggplot2::geom_line()
 g1 + geom_rug_ks(colour=4) 
-g1 + ggplot2::geom_rug(stat="point_ks", colour=4) ## same output
+g1 + ggplot2::geom_rug(stat="rug_ks", colour=4) ## same output
 
 ## scatter plot for tidy 2-d kernel density estimate
 crabs2 <- dplyr::select(crabs, FL, CW)

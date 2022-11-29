@@ -1,21 +1,24 @@
-###################################################################################
+#####################################################################
 ## Compute sf versions of ks functions
-###################################################################################
+#####################################################################
 
 ## default auxiliary function to convert ks object to sf object
 ## x = sf point object or tidy_ks object
+
 st_ks <- function(x, fun_ks, crs, ...)
 {
 	## x = tidy_ks object
-	if (any(class(x) %in% "tidy_ks"))
+	if (inherits(x, "tidy_ks"))
     {
         fhat <- x
     }
+    ## x = sf object
     else
     {
-        if (missing(crs)) crs <- sf::st_crs(x)
         ## extract coordinates
+        if (missing(crs)) crs <- sf::st_crs(x)
         xcoord <- dplyr::group_modify(.data=x, .f=~as.data.frame(sf::st_coordinates(.x)))
+        
         ## compute tidy kernel estimate via tidy_k* function
         fhat <- do.call(fun_ks, args=list(data=xcoord, rename=FALSE, ...))
     }
@@ -52,6 +55,7 @@ st_ks <- function(x, fun_ks, crs, ...)
 
 ## sf version of ks::kde
 ## x = sf point geometry
+
 st_kde <- function(x, ...)
 {
     ## compute KDE
@@ -62,6 +66,7 @@ st_kde <- function(x, ...)
 
 ## sf version of ks::kdcde
 ## x = sf point geometry
+
 st_kdcde <- function(x, ...)
 {
     ## compute deconvolved KDE
@@ -72,6 +77,7 @@ st_kdcde <- function(x, ...)
 
 ## sf version of ks::kcde
 ## data = sf point geometry
+
 st_kcde <- function(x, ...)
 {
 	## compute kernel CDE
@@ -106,6 +112,7 @@ st_kcde <- function(x, ...)
 
 ## sf version of ks::kde.boundary
 ## x = sf point geometry
+
 st_kde_boundary <- function(x, ...)
 {
     ## compute boundary corrected KDE
@@ -116,6 +123,7 @@ st_kde_boundary <- function(x, ...)
 
 ## sf version of ks::kde.balloon
 ## x = sf point geometry
+
 st_kde_balloon <- function(x, ...)
 {
     ## compute balloon variable KDE
@@ -126,6 +134,7 @@ st_kde_balloon <- function(x, ...)
 
 ## sf version of ks::kde.sp
 ## x = sf point geometry
+
 st_kde_sp <- function(x, ...)
 {
     ## compute sample point variable KDE
@@ -137,6 +146,7 @@ st_kde_sp <- function(x, ...)
 ## sf version of ks::kde.truncate
 ## x = sf point geometry
 ## boundary = sf point/polygon geometry
+
 st_kde_truncate <- function(x, boundary, ...)
 {
 	## compute boundary kernel density estimate
@@ -172,6 +182,7 @@ st_kde_truncate <- function(x, boundary, ...)
 
 ## sf version of ks::kda
 ## x = sf point geometry
+
 st_kda <- function(x, ...)
 {
     ## compute kernel discriminant analysis
@@ -209,6 +220,7 @@ st_kda <- function(x, ...)
 
 ## sf version of ks::kdde
 ## x = sf point geometry
+
 st_kdde <- function(x, deriv_order=1, ...)
 {
 	## compute kernel density derivatives estimate
@@ -235,7 +247,7 @@ st_kdde <- function(x, deriv_order=1, ...)
     ## convert contours to multipolygon geometry
 	cont.geom <- dplyr::group_modify(.data=fhat, .f=~dplyr::tibble(geometry=list(st_contourline_kdde(x=untidy_ks(.x), which_deriv_ind=.x$deriv_ind, cont=1:99))))
 	cont.geom <- dplyr::group_modify(.data=cont.geom, .f=~data.frame(.x$geometry))
-	cont.geom <- dplyr::left_join(cont.geom, dplyr::select(fhat, dplyr::all_of(gv2)), by=dplyr::all_of(gv))
+	cont.geom <- dplyr::left_join(cont.geom, dplyr::select(fhat, dplyr::all_of(gv2)), by=gv)
     cont.geom <- dplyr::relocate(cont.geom, dplyr::all_of(gv2), .before="geometry") 
     cont.geom <- dplyr::relocate(cont.geom, "deriv_ind", .after="estimate") 
     cont.geom <- dplyr::arrange(cont.geom, .data$deriv_ind)
@@ -251,6 +263,7 @@ st_kdde <- function(x, deriv_order=1, ...)
 
 ## sf version of ks::kde_local_test
 ## x = sf point geometry
+
 st_kde_local_test <- function(x1, x2, labels, ...)
 {
     ## compute kernel local test
@@ -319,6 +332,7 @@ st_kde_local_test <- function(x1, x2, labels, ...)
 
 ## sf version of ks::kfs
 ## x = sf point geometry
+
 st_kfs <- function(x, ...)
 {
     ## compute kernel feature significance
@@ -359,6 +373,7 @@ st_kfs <- function(x, ...)
 
 ## sf version of ks::kdr
 ## x = sf point geometry
+
 st_kdr <- function(x, dTolerance=100, ...)
 {
     ## compute kernel density ridge
@@ -384,24 +399,24 @@ st_kdr <- function(x, dTolerance=100, ...)
 
 ## sf version of ks::kms
 ## x = sf point geometry
+
 st_kms <- function(x, ...)
 {
     ## compute kernel mean shift
 	xcoord <- dplyr::group_modify(.data=x, .f=~as.data.frame(sf::st_coordinates(.x)))
 	fhat <- .tidy_kms(xcoord, rename=FALSE, ...)
-	#fhat.tidy <- fhat
     fhat <- dplyr::slice_head(fhat)
     fhat <- dplyr::select(fhat, -dplyr::one_of(c("x","y","estimate")))
     gv <- dplyr::group_vars(x)
 
     ## compute cluster labels
     fhat1 <- dplyr::group_modify(.data=fhat, .f=~dplyr::as_tibble(untidy_ks(.x, "x")))
-    fhat2 <- dplyr::group_modify(.data=fhat, .f=~dplyr::rename(dplyr::as_tibble(untidy_ks(.x, "label")), label=.data$value))
+    fhat2 <- dplyr::group_modify(.data=fhat, .f=~dplyr::rename(dplyr::as_tibble(untidy_ks(.x, "label")), label=dplyr::all_of("value")))
     
     fhat1 <- dplyr::mutate(fhat1, tks="kms")
     fhat1$label <- as.integer(fhat2$label)
 
-    fhat.sf <- dplyr::mutate(fhat1, contlabel=50, contlabel=factor(.data$contlabel), estimate=.data$label, .before=.data$label)
+    fhat.sf <- dplyr::mutate(fhat1, contlabel=50, contlabel=factor(.data$contlabel), estimate=.data$label, .before="label")
     fhat.sf <- dplyr::relocate(fhat.sf, "contlabel", "estimate", .before="tks")
     fhat.sf <- dplyr::mutate(fhat.sf, estimate=factor(.data$estimate), label=factor(.data$label))
     fhat.sf <- sf::st_as_sf(fhat.sf, coords=c("X","Y"), crs=sf::st_crs(x))
@@ -422,6 +437,7 @@ st_kms <- function(x, ...)
 
 ## sf version of kernel support estimate
 ## x= sf_ks object (output from st_kde)
+
 st_ksupp <- function(x, cont=95, convex_hull=TRUE, ...)
 {
     ## compute kernel support estimate
@@ -453,6 +469,7 @@ st_ksupp <- function(x, cont=95, convex_hull=TRUE, ...)
 
 ## sf version of ks::kcurv
 ## x = sf_ks object (output from st_kdde)
+
 st_kcurv <- function(x, ...)
 {
     ## compute kernel curvature estimate
@@ -490,6 +507,7 @@ st_kcurv <- function(x, ...)
 
 ## spatial version of ks::kroc
 ## x1, x2 = sf point geometry
+
 st_kroc <- function(x1, x2, ...)
 {
     ## compute kernel ROC 
@@ -502,6 +520,7 @@ st_kroc <- function(x1, x2, ...)
 
 ## spatial version of ks::kquiver
 ## x = output from st_kdde(, deriv_order=1)
+
 st_kquiver <- function(x, thin=5, transf=1/4, neg.grad=FALSE, scale=1)
 { 
     ## compute kernel quiver estimate
@@ -510,8 +529,8 @@ st_kquiver <- function(x, thin=5, transf=1/4, neg.grad=FALSE, scale=1)
     t1 <- dplyr::left_join(t1, x$tidy_ks, by=jv)
     t1 <-dplyr::mutate(t1, rn=dplyr::row_number(), ks=ifelse(.data$rn==1, .data$ks, list(2L)))
     t1 <- dplyr:: mutate(t1, deriv_order=1L, deriv_ind=ifelse(.data$deriv_group=="deriv (1,0)", 1, 2), estimate=ifelse(.data$deriv_ind==1, .data$estimate1, .data$estimate2))
-    t1 <- dplyr::rename(t1, x=.data$Var1, y=.data$Var2)
-    t1 <- dplyr::select(t1, .data$x, .data$y, .data$estimate, .data$deriv_order, .data$deriv_ind, .data$ks, .data$tks, .data$label, dplyr::all_of(jv))
+    t1 <- dplyr::rename(t1, x=dplyr::all_of("Var1"), y=dplyr::all_of("Var2"))
+    t1 <- dplyr::select(t1, dplyr::all_of(c("x", "y", "estimate", "deriv_order", "deriv_ind", "ks", "tks", "label", jv)))
     t2 <- tidy_kquiver(t1, thin=thin, transf=transf, neg.grad=neg.grad)
 
     ## rescale quiver arrows 
@@ -527,14 +546,14 @@ st_kquiver <- function(x, thin=5, transf=1/4, neg.grad=FALSE, scale=1)
     t6 <- sf::st_set_crs(t6, sf::st_crs(x$sf))
     t6 <- dplyr::bind_cols(t6, x=t3$x, y=t3$y, xend=t3$xend, yend=t3$yend)
     t6$len <- unit(scale*sqrt(t3$u^2+t3$v^2)/10^ceiling(log10(max(sqrt(t3$u^2+t3$v^2)))), "npc")
-    t6 <- dplyr::rename(t6, lon=.data$x, lat=.data$y, lon_end=.data$xend, lat_end=.data$yend)
+    t6 <- dplyr::rename(t6, lon=dplyr::all_of("x"), lat=dplyr::all_of("y"), lon_end=dplyr::all_of("xend"), lat_end=dplyr::all_of("yend"))
     if (length(jv)>=1) jv <- setdiff(jv, "deriv_group")
     if (length(jv)>=1) t6 <- dplyr::select(t6, dplyr::one_of(c("lon","lat","lon_end","lat_end","len","u","v",jv, "geometry"))) 
     else t6 <- dplyr::select(t6, dplyr::one_of(c("lon","lat","lon_end","lat_end","len","u","v","geometry"))) 
     
     fhat <- dplyr::slice_head(t2, n=1)
     if (length(jv)==0) fhat <- dplyr::ungroup(fhat) 
-    else { t6 <- dplyr::group_by(t6, dplyr::across(jv)); t6 <- dplyr::arrange(t6, dplyr::across(jv), .data$lat, .data$lon) } 
+    else { t6 <- dplyr::group_by(t6, dplyr::across(dplyr::all_of(jv))); t6 <- dplyr::arrange(t6, dplyr::across(dplyr::all_of(jv)), .data$lat, .data$lon) } 
     fhat <- dplyr::select(fhat, -dplyr::one_of(c("x","y","u","v","estimate")))
     fhat.sf <- list(tidy_ks=fhat, grid=NULL, sf=t6)
     class(fhat.sf) <- "sf_ks"

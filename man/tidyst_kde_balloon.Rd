@@ -3,7 +3,6 @@
 \alias{tidy_kde_sp}
 \alias{st_kde_balloon}
 \alias{st_kde_sp}
-
 \title{Tidy and geospatial kernel density estimates with variable kernels}
 
 \description{
@@ -77,7 +76,7 @@ bcols <- colorspace::sequential_hcl(nrow(b), palette="Heat2", rev=TRUE)
 ## base R plot
 xlim <- c(1.2e5, 1.1e6); ylim <- c(6.1e6, 7.2e6)
 plot(wa, xlim=xlim, ylim=ylim)
-plot(s1, add=TRUE, col=bcols[1:4], breaks=b)
+plot(s1, add=TRUE, col=bcols[1:2], breaks=b)
 plot(wa, xlim=xlim, ylim=ylim)
 plot(s2, add=TRUE, col=bcols, breaks=b)
 

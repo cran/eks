@@ -1,8 +1,6 @@
 \name{tidyst_kdde}
 \alias{tidy_kdde}
 \alias{st_kdde}
-
-
 \title{Tidy and geospatial kernel density derivative estimates}
 
 \description{
@@ -20,7 +18,6 @@ st_kdde(x, deriv_order=1, ...)
     \item{x}{sf object with point geometry}
     \item{...}{other parameters in \code{ks::kdde} function}
 }
-
 
 \value{
     --For \code{tidy_kdde}, the output is an object of class \code{tidy_ks}, which is a tibble with columns: 
@@ -60,7 +57,8 @@ gt1 + ggplot2::geom_line(colour=1) + geom_rug_ks(colour=4)
 t2 <- tidy_kdde(crabs2, deriv_order=1)
 cs <- scale_transparent(colorspace::scale_fill_discrete_diverging())
 gt2 <- ggplot2::ggplot(t2, ggplot2::aes(x=FL, y=CW))
-gt2 + geom_contour_ks(ggplot2::aes(group=deriv_group, colour=stat(level))) +
+gt2 + geom_contour_ks(ggplot2::aes(group=deriv_group, 
+    colour=ggplot2::after_stat(level))) +
     colorspace::scale_colour_discrete_diverging() +
     cs + ggplot2::facet_wrap(~deriv_group)
 gt2 + geom_contour_filled_ks(colour=1) +
@@ -75,7 +73,7 @@ data(grevilleasf)
 hakeoides <- dplyr::filter(grevilleasf, species=="hakeoides")
 s1 <- st_kdde(hakeoides, deriv_order=1)
 s1_cont <- st_get_contour(s1, which_deriv_ind=1)
-s1_cont2 <- st_get_contour(s1)
+s1_cont2 <- st_get_contour(s1, breaks=contour_breaks(s1))
 
 ## base R filled contour plot
 xlim <- c(1.2e5, 1.1e6); ylim <- c(6.1e6, 7.2e6)
@@ -85,13 +83,14 @@ plot(s1, add=TRUE, which_deriv_ind=1)
 ## geom_sf filled contour plot
 gs <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA) + 
     ggthemes::theme_map()
-gs + ggplot2::geom_sf(data=s1_cont, ggplot2::aes(fill=label_percent(contlabel))) +
+gs + ggplot2::geom_sf(data=s1_cont, 
+    ggplot2::aes(fill=label_percent(contlabel))) +
     colorspace::scale_fill_discrete_diverging() +
     ggplot2::coord_sf(xlim=xlim, ylim=ylim)
 
 ## facet wrapped geom_sf filled contour plot
-## each facet = each partial derivative
-gs + ggplot2::geom_sf(data=s1_cont2, ggplot2::aes(fill=label_percent(contlabel))) +
+## each facet = each partial derivative 
+gs + ggplot2::geom_sf(data=s1_cont2, ggplot2::aes(fill=contlabel)) +
     colorspace::scale_fill_discrete_diverging() +
     ggplot2::coord_sf(xlim=xlim, ylim=ylim) + 
     ggplot2::facet_wrap(~deriv_group)}

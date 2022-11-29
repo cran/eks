@@ -2,7 +2,6 @@
 \alias{tidy_kcde}
 \alias{tidy_kcopula}
 \alias{st_kcde}
-
 \title{Tidy and geospatial kernel cumulative distribution and copula estimates}
 
 \description{
@@ -20,7 +19,6 @@ st_kcde(x, ...)
     \item{x}{sf object with point geometry}
     \item{...}{other parameters in \code{ks::kcde}, \code{ks::kcopula} functions}
 }
-
 
 \value{
     The outputs from \code{*_kcde} have the same structure as the kernel density estimate from \code{\link[=st_kde]{*_kde}}, except that \code{estimate} indicates the cumulative distribution rather than the density values. Likewise for \code{tidy_kcopula}.
@@ -63,13 +61,14 @@ plot(paradoxa_bbox, add=TRUE, lty=3, lwd=2)
 plot(s1, add=TRUE)
 
 ## geom_sf filled contour plot
-gs1 <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA) 
-gs1 + ggplot2::geom_sf(data=sf::st_as_sfc(sf::st_bbox(paradoxa_crop)), 
-    size=1.2, linetype="dotted", fill=NA) +
+gs1 <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA) + 
+    ggthemes::theme_map() 
+gs1 + ggplot2::geom_sf(data=paradoxa_bbox, linewidth=1.2, 
+    linetype="dotted", fill=NA) +
     ggplot2::geom_sf(data=st_get_contour(s1), 
     ggplot2::aes(fill=label_percent(contlabel))) +
-    ggplot2::coord_sf(xlim=xlim, ylim=ylim) +
-    ggplot2::scale_fill_viridis_d() + ggthemes::theme_map()}
+    ggplot2::scale_fill_viridis_d() +
+    ggplot2::coord_sf(xlim=xlim, ylim=ylim)}
 }
 
 \keyword{smooth}

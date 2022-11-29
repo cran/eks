@@ -18,8 +18,7 @@
   
     The output simple feature geometries (provided by the \pkg{sf} package) from \code{st_k*} can be visualised in the (i) \pkg{ggplot2} graphical interface using primarily the \code{geom_sf} layer function, or (ii) in the base \R graphical interface using the \code{plot} method supplied in this package. These simple feature geometries can also be exported as standard geospatial formats (e.g. shapefile, GEOS geometry) for use in external GIS software such as ArcGIS and QGIS. 
 }   
-  
-  
+    
 \author{ Tarn Duong }
 
 \references{
@@ -30,6 +29,3 @@
 }
 
 \keyword{package}
-
-
-

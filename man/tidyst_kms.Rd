@@ -1,7 +1,6 @@
 \name{tidyst_kms}
 \alias{tidy_kms}
 \alias{st_kms}
-
 \title{Tidy and geospatial kernel mean shift clustering}
 
 \description{
@@ -61,14 +60,14 @@ plot(s2, add=TRUE, lty=3, pal=function(.){
     colorspace::qualitative_hcl(n=., palette="Set2", alpha=0.15)})
 
 ## geom_sf plot
-gs <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA) 
+gs <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA)  + 
+    ggthemes::theme_map()
 gs + ggplot2::geom_sf(data=s1$sf, ggplot2::aes(colour=estimate), alpha=0.5) + 
     ggplot2::geom_sf(data=s2, ggplot2::aes(fill=estimate), linetype="dotted", 
     alpha=0.15) + 
     colorspace::scale_colour_discrete_qualitative(palette="Set2") +
     colorspace::scale_fill_discrete_qualitative(palette="Set2") +
-    ggplot2::coord_sf(xlim=xlim, ylim=ylim) + 
-    ggthemes::theme_map() 
+    ggplot2::coord_sf(xlim=xlim, ylim=ylim) 
 }
 
 \keyword{smooth}

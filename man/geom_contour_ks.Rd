@@ -7,7 +7,6 @@
 \alias{StatContourKs}
 \alias{GeomContourFilledKs}
 \alias{StatContourFilledKs}
-
 \title{Contour and filled contour plots for tidy kernel estimates}
 
 \description{

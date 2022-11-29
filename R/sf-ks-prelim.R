@@ -1,6 +1,6 @@
-###################################################################################
+#####################################################################
 ## Auxiliary functions for st_* functions
-###################################################################################
+#####################################################################
 
 ## plot function for sf_ks object
 
@@ -17,7 +17,7 @@ ggplot.sf_ks <- function(data=NULL, mapping=aes(), ..., which_geometry="sf")
 
 plot.sf_ks <- function(x, ...) { plot_sf_ks(x=x, ...) }
 
-plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks, breaks, which_deriv_ind=1, main="", pal, col, key.pos=NULL, alpha, legend=FALSE, ...) 
+plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks, breaks, which_deriv_ind=1, main="", pal, col, pos="bottomleft", key.pos=NULL, alpha, legend=TRUE, ...) 
 {
     g <- match.arg(which_geometry, c("sf","grid"))
     y <- x[[g]]
@@ -30,30 +30,36 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
         else if (any(oc %in% "kfs")) col <- ggplot2::alpha(7, alpha=alpha)
         else if (any(oc %in% "ksupp")) col <- NA
         else if (any(oc %in% "kquiver")) col <- ggplot2::alpha(1, alpha=alpha)
-
+ 
+        pal.missing <- FALSE
         if (missing(pal)) 
         {
+            pal.missing <- TRUE
             if (any(oc %in% "kdde")) pal <- function(.) { colorspace::diverging_hcl(n=., palette="Blue-Red", alpha=alpha) }
             else if (any(oc %in% "kcurv")) pal <- function(.) { colorspace::sequential_hcl(n=., h1=30, c1=360, c2=60, alpha=alpha, rev=TRUE) }
-            else if (any(oc %in% "kde.loctest")) pal <- function(.) { colorspace::qualitative_hcl(n=., palette="Dark2", alpha=alpha) }
-            else if (any(oc %in% "kcde")) pal <- function(.) { colorspace::sequential_hcl(n=., rev=TRUE, palette="Viridis", alpha=alpha) }
+            else if (any(oc %in% "kde.loctest")) pal <- function(.) { colorspace::qualitative_hcl(n=., palette="Dark2", alpha=alpha, rev=TRUE) }
+            else if (any(oc %in% "kcde")) pal <- function(.) { colorspace::sequential_hcl(n=., rev=FALSE, palette="Viridis", alpha=alpha) }
             else if (any(oc %in% c("kroc","kms"))) pal <- function(.) { colorspace::qualitative_hcl(n=., rev=TRUE, palette="Set2", alpha=alpha) }
             else if (any(oc %in% "kda")) 
             {
                 if (g=="sf") 
                 {
-                    pal <- function(.) { colorspace::qualitative_hcl(n=., rev=TRUE, palette="Set2", alpha=alpha) } 
+                    pal <- function(.) { colorspace::qualitative_hcl(n=., palette="Dark2", alpha=alpha) } 
                     ng <- length(table(dplyr::group_indices(y)))
                     cols <- pal(ng)
                     if (missing(breaks)) nc <- length(cont) else nc <- length(breaks)
                     col <- rep(cols, each=nc)
                 } 
-                else pal <- function(.) { colorspace::qualitative_hcl(n=., rev=TRUE, palette="Set2", alpha=alpha) }
+                else pal <- function(.) { colorspace::qualitative_hcl(n=., palette="Dark2", alpha=alpha) }
             }
             else pal <- function(.) { colorspace::sequential_hcl(n=., rev=TRUE, palette="Heat2", alpha=alpha) }
         }
     }
-    else col <- ggplot2::alpha(col, alpha=alpha)
+    else 
+    {
+        col <- ggplot2::alpha(col, alpha=alpha)
+        pal.missing <- TRUE
+    }
 
     if (g=="sf")
 	{   
@@ -61,22 +67,22 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
            
         if (any(oc %in% c("kdr", "kms")))
         {
-            yd <- dplyr::select(y, .data$label) 
+            yd <- dplyr::select(y, dplyr::all_of("label")) 
         }
         else if (any(oc %in% "ksupp"))
         {
-            yd <- dplyr::select(y, .data$contlabel) 
+            yd <- dplyr::select(y, dplyr::all_of("contlabel")) 
         }
         else if (any(oc %in% "kdde"))
         {
             y <- st_get_contour(x, cont=cont, breaks=abs_cont, which_deriv_ind=which_deriv_ind) 
             y <- y[y$deriv_ind == which_deriv_ind,]
-            yd <- dplyr::select(y, .data$estimate) 
+            yd <- dplyr::select(y, dplyr::all_of("estimate")) 
         }
         else
         {
             y <- st_get_contour(x, cont=cont, breaks=abs_cont)
-            yd <- dplyr::select(y, .data$estimate)
+            yd <- dplyr::select(y, dplyr::all_of("estimate"))
         }
         
         if (missing(col)) plot(yd, main=main, pal=pal, ...)
@@ -89,35 +95,51 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
 	else if (g=="grid") 
 	{
         if (any(oc %in% "kdde")) y <- y[y$deriv_ind == which_deriv_ind,]
-        yd <- dplyr::select(y, .data$estimate)
+        yd <- dplyr::select(y, dplyr::all_of("estimate"))
         
         if (missing(col)) plot(yd, main=main, pal=pal, key.pos=key.pos, ...)
         else plot(yd, main=main, col=col, key.pos=key.pos, ...)
     }
 
     ## add legend
+    ## mapsf legends don't allow for line types in legend boxes so st_ksupp plots
+    ## aren't supported
     legend <- legend & !(oc %in% c("ksupp"))
     if (legend)
     {
-        
+        if (!requireNamespace("mapsf", quietly=TRUE)) stop("Install the mapsf package as it is required.", call.=FALSE)
+    
         forms <- list(...)
-        forms <- forms[names(forms) %in% names(formals(mf_legend_t))]
+        forms <- forms[names(forms) %in% names(formals(mapsf::mf_legend_t))]
         gu <- guides_ks(dplyr::add_row(dplyr::ungroup(x$tidy_ks), ks=list(2L)))
         gu.title <- gu$fill$title
         mflt <- mapsf::mf_legend_t
         mfls <- mapsf::mf_legend_s
-        
+        mflc <- mapsf::mf_legend_c
+
         if (!(oc %in% "kda"))
         {
-            contlabel <- sort(unique(y$contlabel),decreasing=TRUE)
+            contlabel <- sort(unique(y$contlabel), decreasing=TRUE)
             if (missing(breaks)) contlabel <- paste0(contlabel,"%")
             nc <- length(contlabel)
         }
 
-        if (oc %in% "kda" & g=="grid")
+        if (g=="grid")
         {
-            gv <- levels(dplyr::pull(sf::st_drop_geometry(y), .data$label))
-            do.call("mflt", args=c(list(val=gv, pal=pal(length(gv)), title=gu.title), forms))
+            if (oc %in% "kda")
+            {
+                gv <- levels(dplyr::pull(sf::st_drop_geometry(y), .data$label))
+                do.call("mflt", args=c(list(val=gv, pal=pal(length(gv)), pos=pos, title=gu.title), forms))
+            }
+            else
+            {
+                y2 <- st_get_contour(x, cont=cont, breaks=abs_cont)
+                yd2 <- dplyr::select(y2, dplyr::all_of("estimate"))
+                gv <- yd2$estimate
+
+                do.call("mflc", args=c(list(val=gv, pal=pal(length(gv)), pos=pos, title=gu.title), forms))
+
+            }
         }
         else if (!is.null(forms$border)) 
         {
@@ -125,46 +147,52 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
             {
                 gv <- levels(dplyr::pull(sf::st_drop_geometry(y), dplyr::all_of(dplyr::group_vars(y))))
                 ng <- length(gv)
-                do.call("mfls", args=c(list(val=gv, pal=unique(forms$border), title=gu.title, pt_cex=rep(3,ng), pt_pch=rep("-", ng)), forms))
+                do.call("mfls", args=c(list(val=gv, pal=unique(forms$border), pos=pos, title=gu.title, pt_cex=rep(3,ng), pt_pch=rep("-", ng)), forms))
             }
             else 
             {
-                if (!is.na(forms$border)) do.call("mfls", args=c(list(val=contlabel, pal=rev(forms$border), title=gu.title, pt_cex=rep(3,nc), pt_pch=rep("-", nc)), forms)) 
-                else do.call("mflt", args=c(list(val=contlabel, pal=pal(nc), title=gu.title), forms)) 
+                if (!all(is.na(forms$border)) & pal.missing) do.call("mfls", args=c(list(val=contlabel, pal=rev(forms$border), pos=pos, title=gu.title, pt_cex=rep(3,nc), pt_pch=rep("-", nc)), forms)) 
+                else do.call("mflt", args=c(list(val=contlabel, pal=rev(pal(nc)), pos=pos, title=gu.title), forms)) 
             }
         }
         else if (!missing(col))
         {
-            if (oc %in% "kdr") do.call("mfls", args=c(list(val="Density ridge", pal=col, title=gu.title, pt_cex=3, pt_pch="-"), forms))
-            else if (oc %in% "kfs") do.call("mflt", args=c(list(val="Signif curv", pal=col, title=gu.title), forms))
+            if (oc %in% "kdr") do.call("mfls", args=c(list(val="Density ridge", pal=col,  pos=pos, title=gu.title, pt_cex=3, pt_pch="-"), forms))
+            else if (oc %in% "kfs") do.call("mflt", args=c(list(val="Signif curv", pos=pos, pal=col, title=gu.title), forms))
+            else if (oc %in% "ksupp") do.call("mfls", args=c(list(val="Support\nconvex hull", pos=pos, pal=col, title=gu.title), forms))
+            else 
+            {
+                if (!missing(breaks)) { col <- rev(col) }
+                do.call("mflt", args=c(list(val=contlabel, pal=col, pos=pos, title=gu.title), forms))
+            }
         }
         else if (!missing(pal)) 
-        {
-        
+        {        
             if (oc %in% "kms") 
             {
                 gv <- levels(dplyr::pull(sf::st_drop_geometry(y), .data$label))
                 nc <- length(gv)
                 formsg <- list(...)
                 if (is.null(formsg$pch)) pch <- 1 else pch <- formsg$pch 
-                do.call("mfls", args=c(list(val=gv, pal=pal(nc), title=gu.title, pt_cex=rep(1,nc), pt_pch=rep(pch,nc)), forms))
+                do.call("mfls", args=c(list(val=gv, pal=pal(nc), pos=pos, title=gu.title, pt_cex=rep(1,nc), pt_pch=rep(pch,nc)), forms))
             }
             else if (oc %in% "kde.loctest")
             {
                 gv <- levels(dplyr::pull(sf::st_drop_geometry(y), .data$label))
                 ind <- order(gv, decreasing=TRUE)
-                do.call("mflt", args=c(list(val=gv[ind], pal=pal(length(gv))[ind], title=gu.title), forms))
+                do.call("mflt", args=c(list(val=gv[ind], pal=pal(length(gv))[ind], pos=pos, title=gu.title), forms))
             }
             else 
-                do.call("mflt", args=c(list(val=contlabel, pal=rev(pal(nc)), title=gu.title), forms))
+                do.call("mflt", args=c(list(val=contlabel, pal=rev(pal(nc)), pos=pos, title=gu.title), forms))
         }
     }
 }
 
-contourLevels.sf_ks <- function(x, cont=c(25,50,75), group=FALSE) { contourLevels(x=x$tidy_ks, cont=cont, group=group) }
+contourLevels.sf_ks <- function(x, cont=c(25,50,75), group=FALSE) { ks::contourLevels(x=x$tidy_ks, cont=cont, group=group) }
 
 ## extract or compute new contours
 ## x = ks_sf object
+
 st_get_contour <- function(x, cont=c(25,50,75), breaks, which_deriv_ind, disjoint=TRUE, as_point=FALSE)
 {
     oc <- head(x$tidy_ks$tks,1)
@@ -184,8 +212,8 @@ st_get_contour <- function(x, cont=c(25,50,75), breaks, which_deriv_ind, disjoin
         ## absolute contour levels 
         if (!missing(breaks))
         {
-            xc <- dplyr::group_modify(.data=fhat, .f=~dplyr::tibble(geometry=list(st_contourline_kdde(x=untidy_ks(.x), which_deriv_ind=.x$deriv_ind, abs.cont=breaks))))
-            xc <- dplyr::group_modify(.data=xc, .f=~data.frame(.x$geometry))
+            xc <- dplyr::group_modify(.data=fhat, .f=~dplyr::tibble(geometry=list(st_contourline_kdde(x=untidy_ks(.x), which_deriv_ind=.x$deriv_ind, abs.cont=breaks)), deriv_ind=.x$deriv_ind))
+            xc <- dplyr::group_modify(.data=xc, .f=~data.frame(deriv_ind=.x$deriv_ind, .x$geometry))
             xc <- dplyr::arrange(xc, .data$deriv_group, .data$contlabel)
             xc <- sf::st_as_sf(xc)
         }
@@ -200,7 +228,7 @@ st_get_contour <- function(x, cont=c(25,50,75), breaks, which_deriv_ind, disjoin
         ## absolute contour levels 
         if (!missing(breaks))
         {
-            if (!(any(class(breaks) %in% "tbl_df"))) breaks <- dplyr::rename(dplyr::as_tibble(breaks), breaks=.data$value)
+            if (!inherits(breaks,"tbl_df")) breaks <- dplyr::as_tibble(data.frame(breaks=breaks))
             if (oc %in% "kda") stop("Explicit contour breaks not supported for kda objects")
             
             xc <- st_contourline(x=fhat, abs.cont=breaks$breaks)
@@ -244,7 +272,7 @@ st_get_contour <- function(x, cont=c(25,50,75), breaks, which_deriv_ind, disjoin
     if (as_point)
     {
         gv <- dplyr::group_vars(xc)
-        if (length(gv)>0) xc <- dplyr::group_by(xc, dplyr::across(c(gv,"contlabel"))) 
+        if (length(gv)>0) xc <- dplyr::group_by(xc, dplyr::across(dplyr::all_of(c(gv,"contlabel")))) 
         else xc <- dplyr::group_by(xc, .data$contlabel)
         xc <- dplyr::group_modify(xc, ~dplyr::as_tibble(sf::st_coordinates(.x)))
         xc$contlabel_group <- factor(apply(dplyr::select(dplyr::ungroup(xc), dplyr::num_range("L", range=1:1000)), 1, paste, collapse="."))
@@ -257,6 +285,7 @@ st_get_contour <- function(x, cont=c(25,50,75), breaks, which_deriv_ind, disjoin
 
 ## create set of disjoint contour polygons
 ## x = multipolygon geometry of contour regions
+
 st_contour_disjoint <- function(x)
 {
     xc <- dplyr::group_modify(.data=x, .f=~dplyr::tibble(.st_contour_disjoint(.x))) 
@@ -306,6 +335,7 @@ st_contour_disjoint <- function(x)
 
 ## compute st_difference on pairs of adjacent rows in sf object
 ## x = sf object
+
 st_difference_sequence <- function(x, headtail=TRUE) 
 { 
     for (i in 1:max(1,length(x)-1)) 
@@ -329,6 +359,7 @@ st_difference_sequence <- function(x, headtail=TRUE)
 
 ## convert contour polygons in ks object to multipolygon geometry
 ## x = ks object   
+
 .st_contourline <- function(x, cont, abs.cont, edge_zero=TRUE)
 {   
     ## flag to use values of abs.cont in contlabel rather than names(abs.cont)
@@ -382,28 +413,33 @@ st_difference_sequence <- function(x, headtail=TRUE)
             cont.polygon <- cbind(contlabel=as.numeric(gsub("%", "", names(abs.cont[i]))), estimate=as.numeric(abs.cont[i]), cont.polygon) 
     	
         j <- j + !sf::st_is_empty(cont.polygon)
-    	if (j==1) { cont.polygon.all <- cont.polygon ; j <- 2 }
+    	if (j<=1) { cont.polygon.all <- cont.polygon ; j <- j+1 }
         else if (j>1) cont.polygon.all <- rbind(cont.polygon.all, cont.polygon)
     }
-    cont.polygon.all <- cont.polygon.all[!sf::st_is_empty(cont.polygon.all),]
-    cont.polygon.all <- sf::st_cast(cont.polygon.all, to="MULTIPOLYGON")
-    cont.polygon.all <- sf::st_make_valid(cont.polygon.all)
-    cont.polygon.all <- dplyr::distinct(cont.polygon.all)
      
-    if (abs.cont.flag) 
+    cont.polygon.all <- cont.polygon.all[!sf::st_is_empty(cont.polygon.all),]
+    if (nrow(cont.polygon.all)>0)
     {
-        cont.polygon.all$contlabel <- factor(cont.polygon.all$contlabel)
-    }
-    else
-    {
-        cont.polygon.all$contlabel <- factor(cont.polygon.all$contlabel)
-        levels(cont.polygon.all$contlabel) <- as.character(100-as.numeric(levels(cont.polygon.all$contlabel)))
+        cont.polygon.all <- sf::st_cast(cont.polygon.all, to="MULTIPOLYGON")
+        cont.polygon.all <- sf::st_make_valid(cont.polygon.all)
+        cont.polygon.all <- dplyr::distinct(cont.polygon.all)
+         
+        if (abs.cont.flag) 
+        {
+            cont.polygon.all$contlabel <- factor(cont.polygon.all$contlabel)
+        }
+        else
+        {
+            cont.polygon.all$contlabel <- factor(cont.polygon.all$contlabel)
+            levels(cont.polygon.all$contlabel) <- as.character(100-as.numeric(levels(cont.polygon.all$contlabel)))
+        }
     }
    
 	return(cont.polygon.all)
 }
 
 ## x = tibble with ks column (output from first part of st_ks)
+
 st_contourline <- function(x, cont, abs.cont, edge_zero=TRUE, ...)
 {
     ## convert contour polygons to multipolygon geometry
@@ -415,6 +451,7 @@ st_contourline <- function(x, cont, abs.cont, edge_zero=TRUE, ...)
 }
 
 ## x = tibble with ks column (output from first part of st_kdde)
+
 st_contourline_kdde <- function(x, cont=1:99, abs.cont, which_deriv_ind=1)
 {
     x.temp <- x
@@ -425,7 +462,8 @@ st_contourline_kdde <- function(x, cont=1:99, abs.cont, which_deriv_ind=1)
     }
     else 
     {
-        abs.cont <- rbind(abs.cont[abs.cont<0], abs.cont[abs.cont>0])
+        if (!is.vector(abs.cont) & !is.null(abs.cont$breaks)) abs.cont <- abs.cont$breaks
+        abs.cont <- suppressWarnings(rbind(abs.cont[abs.cont<0], abs.cont[abs.cont>0]))
         abs.cont.flag <- TRUE
     }
     abs.cont <- sort(c(abs.cont[1,], abs.cont[2,])) 
@@ -442,6 +480,7 @@ st_contourline_kdde <- function(x, cont=1:99, abs.cont, which_deriv_ind=1)
 }
 
 ## x = tibble with ks column (output from first part of st_kda)
+
 st_contourline_kda <- function(x, cont=1:99)
 {
     xj <- untidy_ks(x)
@@ -464,10 +503,11 @@ st_contourline_kda <- function(x, cont=1:99)
 
 ## convert eval.points in ks object to rectangle polygon/point geometry
 ## x = tibble with ks column (output from first part of st_ks)
+
 st_evalpoints <- function(x, gridtype="POLYGON")
 {
     ## convert ks grid to rectangle polygon geometry
-    if (any(class(untidy_ks(x[1,])) %in% "kde.loctest"))
+    if (inherits(untidy_ks(x[1,]), "kde.loctest"))
     {
         fhat.geom.neg <- dplyr::group_modify(.data=x, .f=~dplyr::tibble(.st_evalpoints(untidy_ks(.x)$fhat.diff.neg)))
         fhat.geom.pos <- dplyr::group_modify(.data=x, .f=~dplyr::tibble(.st_evalpoints(untidy_ks(.x)$fhat.diff.pos)))
@@ -497,6 +537,7 @@ st_evalpoints <- function(x, gridtype="POLYGON")
 
 ## convert eval.points in ks object to rectangle polygon geometry
 ## x = ks object
+
 .st_evalpoints <- function(x)
 {
     ## convert KDE to rectangle polygon geometry
@@ -507,17 +548,14 @@ st_evalpoints <- function(x, gridtype="POLYGON")
     fhat.point <- sf::st_as_sf(x=expand.grid(x=ep1[c(1,nx)], y=ep2[c(1,ny)]), coords=1:2)
     fhat.geom <- sf::st_make_grid(fhat.point, n=c(nx-1,ny-1))
     fhat.geom.centroid <- sf::st_centroid(sf::st_geometry(fhat.geom))
-    
-    ## suppressWarnings only required for ks<=1.13.3
-    ## can remove once ks 1.13.4 is uploaded to CRAN
-    fhat.geom <- suppressWarnings(data.frame(estimate=predict(x, x=sf::st_coordinates(fhat.geom.centroid)), fhat.geom))
+    fhat.geom <- data.frame(estimate=predict(x, x=sf::st_coordinates(fhat.geom.centroid)), fhat.geom)
   
     return(fhat.geom)
 }
 
-
 ## convert polygon geometry to point geometry/raster
 ## x = polygon geometry
+
 st_cast_ks <- function(x, to, nx, ny)
 {
     to <- match.arg(toupper(to), c("POINT","RASTER"))
@@ -540,13 +578,14 @@ st_cast_ks <- function(x, to, nx, ny)
 ## (metres) useful to neaten appearance of polygons which are split to separate edges of 
 ## world map after projection  
 ## x = linestring or multipoint geometry
+
 st_remove_long_segment <- function(x, len=500e3)
 {
     x.geom <- dplyr::group_modify(x, .f=~dplyr::as_tibble(sf::st_coordinates(sf::st_geometry(.))))
     gvar <- setdiff(names(x.geom), c("X","Y")) 
-    x.geom <- dplyr::group_by(x.geom, dplyr::across(gvar))
+    x.geom <- dplyr::group_by(x.geom, dplyr::across(dplyr::all_of(gvar)))
     x.geom <- dplyr::mutate(x.geom, L1=cumsum(c(0, sqrt(diff(.data$X)^2 + diff(.data$Y)^2) > len)))
-    x.geom <- dplyr::group_by(x.geom, dplyr::across(gvar))
+    x.geom <- dplyr::group_by(x.geom, dplyr::across(dplyr::all_of(gvar)))
     valid.LS <- names(table(x.geom$L1))[table(x.geom$L1)>2]
     
     if (length(valid.LS)>0) 
@@ -555,7 +594,7 @@ st_remove_long_segment <- function(x, len=500e3)
         x.geom <- dplyr::summarise(sf::st_as_sf(x.geom, coords=c("X","Y"), crs=sf::st_crs(x)), do_union=FALSE, .groups="drop")
         x.geom <- sf::st_cast(x.geom, to="LINESTRING")
         x.geom <- dplyr::filter(x.geom, as.numeric(sf::st_length(.data$geometry))>0)
-        x.geom <- dplyr::group_by(x.geom, dplyr::across(gvar))
+        x.geom <- dplyr::group_by(x.geom, dplyr::across(dplyr::all_of(gvar)))
         x.geom <- dplyr::summarise(sf::st_sf(x.geom), do_union=FALSE, .groups="drop")
     
         x2 <- dplyr::right_join(sf::st_drop_geometry(x), x.geom, by=dplyr::group_vars(x))
@@ -623,22 +662,24 @@ c_sf_ks <- function(..., labels)
 }
 
 ## add coordinates as attributes
+
 st_add_coordinates <- function(x, as_sf=FALSE, as_tibble=FALSE, rename=TRUE)
 {
     xc <- dplyr::mutate(x, .coord=sf::st_coordinates(.data$geometry), .before="geometry")
     xc$X <- xc$.coord[,1]
     xc$Y <- xc$.coord[,2]
-    xc <- dplyr::select(xc, -.data$.coord)
+    xc <- dplyr::select(xc, -dplyr::all_of(".coord"))
 
     if (!as_sf)  xc <- sf::st_drop_geometry(xc)
-    else  xc <- dplyr::relocate(xc, .data$X, .data$Y, .before="geometry")
+    else  xc <- dplyr::relocate(xc, dplyr::all_of(c("X", "Y")), .before="geometry")
     if (as_tibble)  xc <- dplyr::as_tibble(xc)
-    if (rename) xc <- dplyr::rename(xc, lon=.data$X, lat=.data$Y)
+    if (rename) xc <- dplyr::rename(xc, lon=dplyr::all_of("X"), lat=dplyr::all_of("Y"))
 
     return(xc)
 }
 
 ## transform point geometries to simplified line geometry
+
 st_simplify_point <- function(x, dTolerance)
 {
     gv <- dplyr::group_vars(x)
@@ -646,7 +687,7 @@ st_simplify_point <- function(x, dTolerance)
     xs <- sf::st_cast(xs, to="LINESTRING")
     xs <- dplyr::filter(xs, .data$n>1)  ## remove segments with singleton points
     xs <- sf::st_simplify(xs, dTolerance=dTolerance)
-    xs <- dplyr::select(xs, -.data$n)
+    xs <- dplyr::select(xs, -dplyr::all_of("n"))
     xs <- dplyr::arrange(xs, .data$segment)
     if (length(gv)>0) xs <- dplyr::group_by(xs, dplyr::across(dplyr::all_of(gv)))
 
@@ -654,6 +695,7 @@ st_simplify_point <- function(x, dTolerance)
 }
 
 ## add "%" suffix  
+
 label_percent <- function(y)
 {
     factor(y, labels=paste0(levels(y),"%"))

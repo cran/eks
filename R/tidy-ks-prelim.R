@@ -1,6 +1,6 @@
-###################################################################################
+#####################################################################
 ## Auxiliary functions for tidy_* functions
-###################################################################################
+#####################################################################
 
 ggplot.tidy_ks <- function(data=NULL, mapping=aes(), ...)
 {
@@ -15,9 +15,10 @@ ggplot.tidy_ks <- function(data=NULL, mapping=aes(), ...)
 
 ## default aesthetics
 ## object = ggplot or tidy ks object
+
 aes_ks <- function(object)
 {
-    if (any(class(object) %in% "ggplot")) object <- object$data
+    if (inherits(object, "ggplot")) object <- object$data
     d <- dim_ks(object)
     if (d==1) aesd <- aes(y=!!sym("estimate"), weight=!!sym("ks"))
     else if (d==2)
@@ -31,12 +32,13 @@ aes_ks <- function(object)
 
 ## default labels
 ## object = ggplot or tidy ks object
+
 labs_ks <- function(object, x, y, ...)
 {
-    if (any(class(object) %in% "ggplot")) object <- object$data
+    if (inherits(object, "ggplot")) object <- object$data
     d <- dim_ks(object)
 ; 
-    if (any(class(object) %in% "sf_ks"))
+    if (inherits(object, "sf_ks"))
     {
         object <- object$tidy_ks[1,]
         oc <- head(object$tks,1)
@@ -47,7 +49,14 @@ labs_ks <- function(object, x, y, ...)
     {
         oc <- head(object$tks,1)
         if (oc %in% "ksupp") { xnames <- names(untidy_ks(object)) }
-        else if (oc %in% "kdr") { gv <- dplyr::group_vars(object); gv <- setdiff(gv, "segment"); if (length(gv)>0) object <- dplyr::group_by(object, dplyr::across(dplyr::all_of(gv))) else object <- dplyr::ungroup(object); xnames <- untidy_ks(object, "names") }
+        else if (oc %in% "kdr") 
+        { 
+            gv <- dplyr::group_vars(object)
+            gv <- setdiff(gv, "segment")
+            if (length(gv)>0) object <- dplyr::group_by(object, dplyr::across(dplyr::all_of(gv)))
+            else object <- dplyr::ungroup(object)
+            xnames <- untidy_ks(object, "names") 
+        }
         else xnames <- untidy_ks(object, "names")
         while (is.list(xnames)) { xnames <- xnames[[1]] }
 
@@ -56,33 +65,32 @@ labs_ks <- function(object, x, y, ...)
         if (missing(y)) y <- xnames[2]
     }
 
-
     if (d==1)
     {
         if (oc %in% c("kde", "kfs", "kde.boundary")) y <- "Density function"
         else if (oc %in% "kda") y <- "Weighted density"
         else if (oc %in% "kdde") y <- "Density derivative"
         else if (oc %in% "kcde") y <- "Distribution function"
-        else if (oc %in% "kde.loctest") y <- expression("Density difference  "*f1-f2)
+        else if (oc %in% "kde.loctest") y <- expression("Density difference "*f1-f2)
     }
-
     if (oc %in% "kroc")
     {
         x <- expression("False positive rate"~~group("(", list(bar(specificity)), ")"))
         y <- "True positive rate (sensitivity)"
     }
 
-    labsd <- labs(x=x, y=y, ...)
+    labsd <- ggplot2::labs(x=x, y=y, ...)
 
     return(labsd)
 }
 
 ## default guides parameters
+
 guides_ks <- function(object, kda_part=TRUE, colour_contour=TRUE)
 {
-    if (any(class(object) %in% "ggplot")) object <- object$data
+    if (inherits(object, "ggplot")) object <- object$data
     d <- dim_ks(object)
-    if (any(class(object) %in% "sf_ks")) object <- object$tidy_ks[1,]
+    if (inherits(object, "sf_ks")) object <- object$tidy_ks[1,]
     oc <- head(object$tks,1)
 
     if (d==1)
@@ -91,8 +99,8 @@ guides_ks <- function(object, kda_part=TRUE, colour_contour=TRUE)
         if (oc %in% "kda") { titlec <- names(dplyr::select(object, dplyr::group_vars(object)))[1] }
         else if (oc %in% "kde.loctest") { titlec <- "Signif difference" }
         else if (oc %in% "kfs") { titlec <- "" }
-        if (!is.null(titlec)) gu <- guides(colour=guide_legend(title=titlec))
-        else gu <- guides()
+        if (!is.null(titlec)) gu <- ggplot2::guides(colour=ggplot2::guide_legend(title=titlec))
+        else gu <- ggplot2::guides()
     }
     else if (d==2)
     {
@@ -109,26 +117,44 @@ guides_ks <- function(object, kda_part=TRUE, colour_contour=TRUE)
         }
         else if (oc %in% "kdde") titlef <- "Density derivative"
         else if (oc %in% c("kcde", "kcopula")) titlef <- "Distribution"
-        else if (oc %in% "kde.loctest") { titlef <- "Signif difference"}
+        else if (oc %in% "kde.loctest") { titlef <- "Signif difference" }
         else if (oc %in% "kms") { titlef <- "Cluster"; rev <- FALSE }
-        else if (oc %in% c("kdr", "kfs")) { titlef <- ""; titlec <- ""; rev <- FALSE}
+        else if (oc %in% c("kdr", "kfs")) { titlef <- ""; titlec <- ""; rev <- FALSE }
         else if (oc %in% "ksupp") titlef <- expression(atop("Support", "convex hull"))
         if (colour_contour) titlec <- titlef
 
-        if ((titlef=="" & titlec=="") ) gu <- guides(fill=guide_legend(title=NULL, reverse=TRUE & rev), colour=guide_legend(title=NULL, reverse=colour_contour & rev))
-        else if (!is.null(titlef) & !is.null(titlec)) gu <- guides(fill=guide_legend(title=titlef, reverse=TRUE & rev), colour=guide_legend(title=titlec, reverse=colour_contour & rev))
-        else if (!is.null(titlef) & is.null(titlec)) gu <- guides(fill=guide_legend(title=titlef, reverse=TRUE & rev))
-        else if (is.null(titlef) & !is.null(titlec)) gu <- guides(colour=guide_legend(title=titlec, reverse=colour_contour & rev))
-        else gu <- guides()
+        if ((titlef=="" & titlec=="") ) gu <- ggplot2::guides(fill=ggplot2::guide_legend(title=NULL, reverse=TRUE & rev), colour=ggplot2::guide_legend(title=NULL, reverse=colour_contour & rev))
+        else if (!is.null(titlef) & !is.null(titlec)) gu <- ggplot2::guides(fill=ggplot2::guide_legend(title=titlef, reverse=TRUE & rev), colour=ggplot2::guide_legend(title=titlec, reverse=colour_contour & rev))
+        else if (!is.null(titlef) & is.null(titlec)) gu <- ggplot2::guides(fill=ggplot2::guide_legend(title=titlef, reverse=TRUE & rev))
+        else if (is.null(titlef) & !is.null(titlec)) gu <- ggplot2::guides(colour=ggplot2::guide_legend(title=titlec, reverse=colour_contour & rev))
+        else gu <- ggplot2::guides()
     }
 
     return(gu)
 }
 
+## make individual colours in colour scale to be transparent 
+
+scale_transparent <- function(x, ind=NULL)
+{  
+    Scale <- ggplot2::ggproto("Scale", x, 
+        palette = function (self, n)
+        { 
+            pal <- x$palette(n)
+            if (is.null(ind)) ind <- round(stats::median(seq_len(length(pal))),0)
+            pal[ind] <- "transparent"
+            return(pal)
+        }
+    )
+
+    return(Scale)
+}
+
 ## dimension of tidy_ks/sf_ks objects
+
 dim_ks <- function(object)
 {
-    if (any(class(object) %in% "sf_ks"))
+    if (inherits(object, "sf_ks"))
     {
         object <- object$tidy_ks[1,]
         if (object$tks %in% "kda") d <- ncol(untidy_ks(object)$H[[1]])
@@ -141,77 +167,9 @@ dim_ks <- function(object)
     return(as.integer(d))
 }
 
-
-## auxiliary function for adding grouping variable to tidy ks object
-## data = tidy ks object
-add_group <- function(data, object, group_label=NULL, var_ks="ks")
-{
-    d <- unlist(tail(getElement(dplyr::ungroup(object), var_ks),n=1))
-    oc <- class(getElement(object, var_ks)[[1]])
-    while (is.list(oc)) { oc <- oc[[1]] }
-    gg <- object
-
-    ## add grouping variable
-    ## match it if possible to existing grouping variable
-    if (length(dplyr::group_vars(data))==0)
-    {
-        if (oc %in% c("kdde"))
-            gg <- dplyr::mutate(gg, group=.data$deriv_ind_scalar)
-        else
-            gg <- dplyr::mutate(gg, group=1L)
-    }
-    else
-    {
-        ggv <- dplyr::group_vars(gg)
-        if (oc %in% c("kdde"))
-            gg <- dplyr::mutate(dplyr::ungroup(gg), group=(dplyr::group_indices(gg)-1)*max(gg$deriv_ind_scalar)+.data$deriv_ind_scalar)
-        else
-            gg <- dplyr::mutate(dplyr::ungroup(gg), group=dplyr::group_indices(gg))
-    }
-    gg <- dplyr::mutate(gg, group=factor(.data$group))
-
-    if (is.null(group_label))
-    {
-        if (oc %in% c("kdde"))
-        {
-            if (length(dplyr::group_vars(data))>0)
-            {
-               group_label <- dplyr::slice_head(dplyr::group_by(gg, !!sym(ggv), .data$deriv_ind_scalar))
-               group_label <- dplyr::select(dplyr::ungroup(group_label), !!sym(ggv), .data$deriv_ind)
-               group_label <- apply(group_label,1, paste, collapse=" deriv ")
-            }
-            else
-            {
-                group_label <- dplyr::slice_head(dplyr::group_by(gg, .data$deriv_ind_scalar))
-                group_label <- dplyr::select(dplyr::ungroup(group_label), .data$deriv_ind)
-               group_label <- paste("deriv", unlist(group_label))
-            }
-            gg <- dplyr::mutate(gg, deriv_ind=.data$deriv_ind_scalar)
-            gg <- dplyr::select(gg, -dplyr::one_of("deriv_ind_scalar"))
-        }
-        else
-        {
-            if (length(dplyr::group_vars(data))>0)
-                group_label <- dplyr::pull(data, dplyr::group_vars(data))
-            if (is.factor(group_label)) group_label <- levels(group_label)
-            else group_label <- unique(group_label)
-        }
-    }
-
-    if (!is.null(group_label))
-        gg <- dplyr::mutate(gg, group=factor(.data$group, labels=group_label))
-
-    ## add original data
-    gg <- dplyr::relocate(gg, !!sym(var_ks), .after=dplyr::last_col())
-    if (".group" %in% colnames(gg)) gg <- dplyr::select(gg, -".group")
-    gg <- dplyr::relocate(gg, .data$group, .after=dplyr::last_col())
-    gg <- dplyr::group_by(gg, .data$group)
-
-    return(gg)
-}
-
 ## move group_vars in x to last column
 ## group_vars can be those in y  
+
 move_group_vars <- function(x, y)
 {
     if (missing(y)) y <- x
@@ -227,6 +185,7 @@ move_group_vars <- function(x, y)
 
 ## extract ks object from tidy_ks object
 ## object = tidy_ks object
+
 untidy_ks <- function(object, name, collapse=FALSE, var_ks="ks")
 {
     ge <- dplyr::pull(dplyr::slice_head(object), var_ks)
@@ -247,11 +206,11 @@ untidy_ks <- function(object, name, collapse=FALSE, var_ks="ks")
 
 ## extract data matrix from ks object from tidy_ks object
 ## object = tidy_ks object
+
 get_data_ks <- function(object, var_ks="ks")
 {
     ge <- untidy_ks(object, "x", var_ks=var_ks)
     if (is.null(ge)) ge <- rbind(untidy_ks(object, "fhat1", var_ks=var_ks)$x, untidy_ks(object, "fhat2", var_ks=var_ks)$x)
-    d <- unlist(tail(getElement(dplyr::ungroup(object), var_ks),n=1))
     oc <- class(getElement(object, var_ks)[[1]])
     
     if (oc %in% "kda")
@@ -271,6 +230,7 @@ get_data_ks <- function(object, var_ks="ks")
         else
         {
             gr <- rep(unique(object$group), lengths(ge))
+            d <- unlist(tail(getElement(dplyr::ungroup(object), "ks"),n=1))
             if (d==1) ge <- data.frame(do.call("c",ge))
             else ge <- do.call("rbind",ge)
             colnames(ge) <- c("x","y","z")[1:ncol(ge)]
@@ -283,6 +243,7 @@ get_data_ks <- function(object, var_ks="ks")
 }
 
 ## renaming function
+
 rename_ks <- function(data, gg, d)
 {
     gv <- dplyr::group_vars(data)
@@ -296,6 +257,7 @@ rename_ks <- function(data, gg, d)
 }
 
 ## cast data as "tidy_ks" object
+
 as_tidy_ks <- function(data)
 {
     class(data) <- unique(c("tidy_ks", class(data)))
@@ -303,8 +265,39 @@ as_tidy_ks <- function(data)
     return(data)
 }
 
+## concatenate tidy_ks objects
+
+c.tidy_ks <- function (..., labels) { c_tidy_ks(..., labels=labels) } 
+
+c_tidy_ks <- function(..., labels)
+{
+    args <- list(...)
+    nargs <- length(args)
+    if (nargs>=1) 
+    {
+        tt <- dplyr::mutate(args[[1]], group=1L)
+        if (nargs>=2)
+        {
+            for (i in 2:nargs) 
+                tt <- dplyr::bind_rows(tt, dplyr::mutate(args[[i]], group=i))
+        }
+        if (missing(labels)) tt$group <- factor(tt$group)
+        else tt$group <- factor(tt$group, labels=labels)
+        tt <- dplyr::group_by(tt, .data$group)
+        tt <- as_tidy_ks(tt)
+    }
+    else tt <- NULL
+
+    return(tt)
+}
+
+#####################################################################
+## Probability contour regions
+#####################################################################
+
 ## compute contour breaks for ks objects
 ## data = tidy ks object
+
 contour_breaks <- function(data, cont=c(25,50,75), group=FALSE) 
 { 
     cont.aug <- cont[cont>=1 & cont<=99]
@@ -325,7 +318,7 @@ contour_breaks <- function(data, cont=c(25,50,75), group=FALSE)
             cb.mat <- matrix(0, ncol=nrow(data2), nrow=nrow(cb))
             for (i in 1:ncol(cb.mat)) 
             {
-                if (any(class(untidy_ks(data2[i,])) %in% "kda"))
+                if (inherits(untidy_ks(data2[i,]), "kda"))
                 {
                     kdei <- untidy_ks(data2[i,])
                     kdei$x <- kdei$x[[i]]
@@ -336,7 +329,7 @@ contour_breaks <- function(data, cont=c(25,50,75), group=FALSE)
                     class(kdei) <- "kde"
                     data2[i,]$ks <- list(kdei)
                 }
-                if (any(class(untidy_ks(data2[i,])) %in% "kdde")) cb.mat[,i] <- cb$breaks
+                if (inherits(untidy_ks(data2[i,]), "kdde")) cb.mat[,i] <- cb$breaks
                 else cb.mat[,i] <- ks::contourProbs(untidy_ks(data2[i,]), abs.cont=as.vector(unlist(cb)))
             }
             return(as.vector(cb.mat))
@@ -352,16 +345,16 @@ contour_breaks <- function(data, cont=c(25,50,75), group=FALSE)
         cb <- dplyr::group_by(cb, .data$contgr)
         cb.summary <- dplyr::summarise(cb, min.breaks=min(.data$breaks), mean.breaks=mean(.data$breaks), max.breaks=max(.data$breaks))
         cb.summary <- dplyr::mutate(cb.summary, breaks=ifelse(dplyr::row_number()==1, .data$min.breaks, ifelse(dplyr::row_number()==dplyr::n(), .data$max.breaks, .data$mean.breaks)))
-        cb.summary <- dplyr::select(cb.summary, .data$contgr, .data$breaks)
+        cb.summary <- dplyr::select(cb.summary, dplyr::all_of(c("contgr", "breaks"))) 
         cb.summary <- dplyr::arrange(cb.summary, .data$breaks)   
     }
     else cb.summary <- cb
-
 
     return(cb.summary)    
 }
 
 ## contour levels method for tidy_ks opjects
+
 contourLevels.tidy_ks <- function(x, cont=c(25,50,75), group=FALSE)
 {
     data <- x
@@ -391,6 +384,7 @@ contourLevels.tidy_ks <- function(x, cont=c(25,50,75), group=FALSE)
 }
 
 ## fhat = untidy ks object
+
 .contourLevels <- function(fhat, cont, which.deriv.ind=1, approx.cont=TRUE)
 {
     cont <- sort(cont)
@@ -447,28 +441,26 @@ contourLevels.tidy_ks <- function(x, cont=c(25,50,75), group=FALSE)
 }
 
 ## local copies of unexported functions from ggplot2
+
 .ggplot2_new_data_frame <- function(x=list(), n=NULL)
 {
-    if (length(x) != 0 && is.null(names(x))) {
-        stop("Elements must be named")
-    }
+    if (length(x) != 0 && is.null(names(x))) { stop("Elements must be named") }
     lengths <- vapply(x, length, integer(1))
-    if (is.null(n)) {
-        n <- if (length(x) == 0 || min(lengths) == 0)
-            0
+    if (is.null(n)) 
+    {
+        n <- if (length(x)==0 || min(lengths)==0) 0
         else max(lengths)
     }
-    for (i in seq_along(x)) {
-        if (lengths[i] == n)
-            next
-        if (lengths[i] != 1) {
-            stop("Elements must equal the number of rows or 1")
-        }
+    for (i in seq_along(x)) 
+    {
+        if (lengths[i] == n) next
+        if (lengths[i] != 1) { stop("Elements must equal the number of rows or 1") }
         x[[i]] <- rep(x[[i]], n)
     }
     class(x) <- "data.frame"
     attr(x, "row.names") <- .set_row_names(n)
-    x
+    
+    return(x)
 }
 
 .ggplot2_xyz_to_isolines <- function(data, breaks)
@@ -491,13 +483,15 @@ contourLevels.tidy_ks <- function(x, cont=c(25,50,75), group=FALSE)
     ncol <- max(x_pos)
     raster <- matrix(NA_real_, nrow=nrow, ncol=ncol)
     raster[cbind(y_pos, x_pos)] <- data$z
-    raster
+    
+    return(raster)
 }
 
 .ggplot2_iso_to_path <- function (iso, group=1)
 {
     lengths <- vapply(iso, function(x) length(x$x), integer(1))
-    if (all(lengths == 0)) {
+    if (all(lengths == 0)) 
+    {
         warning("stat_contour(): Zero contours were generated")
         return(.ggplot2_new_data_frame())
     }
@@ -532,40 +526,9 @@ contourLevels.tidy_ks <- function(x, cont=c(25,50,75), group=FALSE)
         n=length(xs))
 }
 
-## local copies of unexported functions from scales
-.scales_rescale_max <- function (x, to = c(0, 1), from = range(x, na.rm = TRUE)) 
-{
-    x/from[2] * to[2]
-}
-
-## concatenate tidy_ks objects
-c.tidy_ks <- function (..., labels) { c_tidy_ks(..., labels=labels) } 
-
-c_tidy_ks <- function(..., labels)
-{
-    args <- list(...)
-    nargs <- length(args)
-    if (nargs>=1) 
-    {
-        tt <- dplyr::mutate(args[[1]], group=1L)
-        if (nargs>=2)
-        {
-            for (i in 2:nargs) 
-                tt <- dplyr::bind_rows(tt, dplyr::mutate(args[[i]], group=i))
-        }
-        if (missing(labels)) tt$group <- factor(tt$group)
-        else tt$group <- factor(tt$group, labels=labels)
-        tt <- dplyr::group_by(tt, .data$group)
-        tt <- as_tidy_ks(tt)
-    }
-    else tt <- NULL
-
-    return(tt)
-}
-
-###################################################################################
-## stat_* and geom_* auxiliary functions for geom_* functions
-###################################################################################
+#####################################################################
+## stat_* and geom_* auxiliary functions for ggplot2 layers
+#####################################################################
 
 ## geom and stat function for extracting data points from tidy_ks object
 ## required for adding scatter plots of original data in geom_point and geom_rug
@@ -582,7 +545,6 @@ stat_point_ks <- function(mapping=NULL, data=NULL, geom="point_ks", position="id
     ggplot2::layer(data=data, mapping=mapping, stat=StatPointKs, geom=geom, position=position, show.legend=show.legend, inherit.aes=inherit.aes, params=list(na.rm=na.rm, jitter=jitter, ...))
 }
 
-## data = tidy_ks object
 StatPointKs <- ggplot2::ggproto("StatPointKs", ggplot2::Stat,
 compute_group=function(self, data, scales, jitter=FALSE)
 {
@@ -590,32 +552,53 @@ compute_group=function(self, data, scales, jitter=FALSE)
     if (jitter) x <- jitter(as.matrix(x))
     return(x)
 },
-required_aes=c("x","y")
+required_aes=c("x","y"),
+dropped_aes=c("z", "weight")
 )
 
-geom_rug_ks <- function(mapping=NULL, data=NULL, stat="point_ks", position="identity", ..., outside=FALSE, sides="bl", length=unit(0.03, "npc"), na.rm=FALSE, jitter=FALSE, show.legend=NA, inherit.aes=TRUE)
+stat_rug_ks <- function(mapping=NULL, data=NULL, geom="rug_ks", position="identity", ..., na.rm=FALSE, show.legend=NA, inherit.aes=TRUE)
+{
+    ggplot2::layer(data=data, mapping=mapping, stat=StatRugKs, geom=geom, position=position, show.legend=show.legend, inherit.aes=inherit.aes, params=list(na.rm=na.rm, jitter=jitter, ...))
+}
+
+StatRugKs <- ggplot2::ggproto("StatPointKs", ggplot2::Stat,
+compute_group=function(self, data, scales, jitter=FALSE)
+{
+    x <- get_data_ks(data, var_ks="weight")
+    if (jitter) x <- jitter(as.matrix(x))
+    return(x)
+},
+required_aes=c("x"),
+dropped_aes=c("y", "z", "weight") 
+)
+
+geom_rug_ks <- function(mapping=NULL, data=NULL, stat="rug_ks", position="identity", ..., outside=FALSE, sides="bl", length=unit(0.03, "npc"), na.rm=FALSE, jitter=FALSE, show.legend=NA, inherit.aes=TRUE)
 {
     ggplot2::layer(data=data, mapping=mapping, stat=stat, geom=GeomRugKs, position=position, show.legend=show.legend, inherit.aes=inherit.aes, params=list(outside=outside, sides=sides, length=length, na.rm=na.rm, jitter=jitter, ...))
 }
-GeomRugKs <- ggplot2::ggproto("GeomRug", GeomRug)
 
+GeomRugKs <- ggplot2::ggproto("GeomRug", GeomRug)
 
 ## stat and geom functions for computing probability contours
 ## replace ggplot2::geom_contour and ggplot2::stat_contour
+
 geom_contour_ks <- function(mapping=NULL, data=NULL, stat="contour_ks", position="identity", ..., cont=c(25,50,75), label_percent=NULL, breaks=NULL, show.legend=NA, inherit.aes=TRUE)
 {
     ggplot2::layer(data=data, mapping=mapping, stat=stat, geom=GeomContourKs, position=position, show.legend=show.legend, inherit.aes=inherit.aes, params=list(cont=cont, label_percent=label_percent, breaks=breaks, ...))
 }
+
 GeomContourKs <- ggplot2::ggproto("GeomContourFilled", GeomContour)
 
 stat_contour_ks <- function(mapping=NULL, data=NULL, geom="contour_ks", position="identity", ..., cont=c(25,50,75), label_percent=NULL, breaks=NULL, show.legend=NA, inherit.aes=TRUE)
 {
-    ggplot2::layer(data=data, mapping=mapping, stat=StatContourKs, geom=geom,   position=position, show.legend=show.legend, inherit.aes=inherit.aes,   params=list(cont=cont, label_percent=label_percent, breaks=breaks, ...))
+    ggplot2::layer(data=data, mapping=mapping, stat=StatContourKs, geom=geom, position=position, show.legend=show.legend, inherit.aes=inherit.aes, params=list(cont=cont, label_percent=label_percent, breaks=breaks, ...))
 }
 
 ## replaces ggplot2::StatContour
 ## data = tidy_ks object
+
 StatContourKs <- ggplot2::ggproto("StatContourKs", ggplot2::StatContour,
+dropped_aes="weight",
 compute_group=function (data, scales, cont=c(25,50,75), label_percent=NULL, breaks, bins=NULL, binwidth=NULL)
 {
     fhat <- untidy_ks(data, var_ks="weight")
@@ -633,7 +616,7 @@ compute_group=function (data, scales, cont=c(25,50,75), label_percent=NULL, brea
             fhat.diff.lab <- fhat$fhat1
             fhat.diff.lab$estimate <- fhat$fhat.diff.pos$estimate - fhat$fhat.diff.neg$estimate
             d <- ncol(fhat$fhat1$H)
-            diff.lab <- compute.tidy(fhat.diff.lab,d=d,tidy=FALSE)$estimate
+            diff.lab <- compute.tidy(fhat.diff.lab, d=d, tidy=FALSE)$estimate
             data$z <- diff.lab
             breaks <- c(-10,-0.5,0.5,10)
         }
@@ -695,12 +678,13 @@ compute_group=function (data, scales, cont=c(25,50,75), label_percent=NULL, brea
     }
     return(path_df)
 },
-required_aes=c("x","y","z")
+required_aes=c("x","y","z"),
+dropped_aes=c("z","weight") 
 )
-
 
 ## stat and geom functions for computing filled probability contours
 ## replace ggplot2::geom_contour_filled & ggplot2::stat_contour_filled
+
 geom_contour_filled_ks <- function(mapping=NULL, data=NULL, stat="contour_filled_ks", position="identity", ..., cont=c(25,50,75), label_percent=NULL, breaks=NULL, show.legend=NA, inherit.aes=TRUE)
 {
     ggplot2::layer(data=data, mapping=mapping, stat=stat, geom=GeomContourFilled, position=position, show.legend=show.legend, inherit.aes=inherit.aes, params=list(cont=cont, label_percent=label_percent, breaks=breaks, ...))
@@ -708,13 +692,13 @@ geom_contour_filled_ks <- function(mapping=NULL, data=NULL, stat="contour_filled
 
 GeomContourFilledKs <- ggplot2::ggproto("GeomContourFilled", GeomContourFilled)
 
+## replace ggplot2::stat_contour_filled & ggplot2::StatContourFilled
+
 stat_contour_filled_ks <- function(mapping=NULL, data=NULL, geom="contour_filled_ks", position="identity", ..., cont=c(25,50,75), label_percent=NULL, breaks=NULL, show.legend=NA, inherit.aes=TRUE)
 {
-    ggplot2::layer(data=data, mapping=mapping, stat=StatContourFilledKs, geom=geom, position=position, show.legend=show.legend, inherit.aes=inherit.aes,  params=list(breaks=breaks, na.rm=FALSE, ...))
+    ggplot2::layer(data=data, mapping=mapping, stat=StatContourFilledKs, geom=geom, position=position, show.legend=show.legend, inherit.aes=inherit.aes, params=list(breaks=breaks, na.rm=FALSE, ...))
 }
 
-## replaces ggplot2::StatContourFilled
-## data = tidy_ks object
 StatContourFilledKs <- ggplot2::ggproto("StatContourFilledKs", StatContourFilled,
 compute_group=function(data, scales, cont=c(25,50,75), label_percent=NULL, breaks, bins=NULL, binwidth=NULL)
 {
@@ -730,26 +714,21 @@ compute_group=function(data, scales, cont=c(25,50,75), label_percent=NULL, break
             d <- ncol(fhat$fhat1$H)
             fhat.diff.lab <- fhat$fhat1
             fhat.diff.lab$estimate <- fhat$fhat.diff.pos$estimate - fhat$fhat.diff.neg$estimate
-            diff.lab <- compute.tidy(fhat.diff.lab,d=d,tidy=FALSE)$estimate
+            diff.lab <- compute.tidy(fhat.diff.lab, d=d, tidy=FALSE)$estimate
             data$z <- diff.lab
         }
         else if (oc %in% "kfs")
         {
             d <- ncol(fhat$H)
-            data$z <- compute.tidy(fhat,d=d,tidy=FALSE)$estimate
+            data$z <- compute.tidy(fhat, d=d, tidy=FALSE)$estimate
         }
 
         breaks <- .contourLevels(fhat=fhat, cont=cont)
-
-        if (oc %in% "kda")
-        {
-            breaks <- breaks[[unique(data$PANEL)]]
-        }
+        if (oc %in% "kda") breaks <- breaks[[unique(data$PANEL)]]
         isobands <- .ggplot2_xyz_to_isobands(data, breaks)
 
         if (oc %in% "kdde")
         {
-            #label_percent <- FALSE
             if (label_percent)
             {
                 nc <- length(cont)
@@ -801,6 +780,9 @@ compute_group=function(data, scales, cont=c(25,50,75), label_percent=NULL, break
         if (exists("breaks_orig")) breaks_isobands <- format(unique(as.vector(sort(c(breaks_orig$breaks, max(breaks))))), digits=3, trim=TRUE)
     }
 
+    ## local copy of unexported function from scales
+    .scales_rescale_max <- function (x, to=c(0, 1), from=range(x, na.rm=TRUE)) { x/from[2] * to[2] }
+
     path_df <- .ggplot2_iso_to_polygon(isobands, data$group[1])
     path_df$level <- ordered(path_df$level, levels=names(isobands))
     path_df$level_low <- breaks[as.numeric(path_df$level)]
@@ -813,22 +795,6 @@ compute_group=function(data, scales, cont=c(25,50,75), label_percent=NULL, break
 
     return(path_df)
 },
-required_aes=c("x","y","z")
+required_aes=c("x","y","z"),
+dropped_aes=c("z","weight") 
 )
-
-## make individual colours in colour scale to be transparent 
-scale_transparent <- function(x, ind=NULL)
-{  
-    Scale <- ggplot2::ggproto("Scale", x, 
-        palette = function (self, n)
-        { 
-            pal <- x$palette(n)
-            if (is.null(ind)) ind <- round(stats::median(seq_len(length(pal))),0)
-            pal[ind] <- "transparent"
-            return(pal)
-        }
-    )
-
-    return(Scale)
-}
-    

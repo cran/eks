@@ -1,16 +1,18 @@
-###################################################################################
+#####################################################################
 ## Compute tidy versions of ks function
-###################################################################################
+#####################################################################
 
 ## default auxiliary function to compute ks object
 ## y = data frame
+
 compute.ks <- function(y, args_ks, fun_ks)
 {
     x <- as.matrix(dplyr::ungroup(y))
     if (length(args_ks)==0) args_ks <- list(x=x)
     else args_ks <- c(list(x=x), args_ks)
     fhat <- do.call(fun_ks, args_ks)
-    if (ncol(fhat[["x"]])==1) fhat[["x"]] <- as.vector(fhat[["x"]])
+    if (is.matrix(fhat[["x"]])) 
+        if (ncol(fhat[["x"]])==1) fhat[["x"]] <- as.vector(fhat[["x"]])
     fhat[["group"]] <- dplyr::group_vars(y)
 
     return(fhat)
@@ -18,9 +20,10 @@ compute.ks <- function(y, args_ks, fun_ks)
 
 ## default auxiliary function to convert ks object to tidy format
 ## x=untidy ks object or tidy ks object
+
 compute.tidy <- function(x, y, d, tidy)
 {
-    if (missing (tidy)) tidy <- any(class(x) %in% "tbl")
+    if (missing(tidy)) tidy <- inherits(x, "tbl")
     if (tidy) x <- getElement(dplyr::pull(x, "ks"),1)
     d <- as.integer(d)
     if (d==1)
@@ -39,9 +42,9 @@ compute.tidy <- function(x, y, d, tidy)
     return(gg)
 }
 
-
 ## default function to compute tidy versions of ks::k* functions
 ## data = data frame
+
 tidy_ks <- function(data, fun_ks, rename=TRUE, label, ...)
 {
     if (is.vector(data)) data <- data.frame(data)
@@ -72,6 +75,7 @@ tidy_ks <- function(data, fun_ks, rename=TRUE, label, ...)
 
 ## tidy version of ks::kde
 ## data = data frame
+
 tidy_kde <- function(data, ...)
 {
     ## compute KDE
@@ -82,6 +86,7 @@ tidy_kde <- function(data, ...)
 
 ## tidy version of ks::kdcde
 ## data = data frame
+
 tidy_kdcde <- function(data, ...)
 {
     ## compute deconvolved KDE
@@ -92,6 +97,7 @@ tidy_kdcde <- function(data, ...)
 
 ## tidy version of ks::kcde
 ## data = data frame
+
 tidy_kcde <- function(data,  ...)
 {
     ## compute KCDE
@@ -102,6 +108,7 @@ tidy_kcde <- function(data,  ...)
 
 ## tidy version of ks::kcopula
 ## data = data frame
+
 tidy_kcopula <- function(data, ...)
 {
     ## compute KCDE
@@ -112,6 +119,7 @@ tidy_kcopula <- function(data, ...)
 
 ## tidy version of ks::kde.boundary
 ## data = data frame
+
 tidy_kde_boundary <- function(data,  ...)
 {
     ## compute boundary corrected KDE
@@ -122,6 +130,7 @@ tidy_kde_boundary <- function(data,  ...)
 
 ## tidy version of ks::kde.balloon
 ## data = data frame
+
 tidy_kde_balloon <- function(data, ...)
 {
     ## compute balloon variable KDE
@@ -132,6 +141,7 @@ tidy_kde_balloon <- function(data, ...)
 
 ## tidy version of ks::kde.sp
 ## data = data frame
+
 tidy_kde_sp <- function(data, ...)
 {
     ## compute sample point variable KDE
@@ -142,9 +152,10 @@ tidy_kde_sp <- function(data, ...)
 
 ## tidy version of ks::kde.truncate
 ## data = data frame
+
 tidy_kde_truncate <- function(data, boundary, ...) { .tidy_kde_truncate(data, boundary, ...) }
 
-.tidy_kde_truncate <- function(data, boundary, rename=TRUE,...)
+.tidy_kde_truncate <- function(data, boundary, rename=TRUE, ...)
 {
     if (is.vector(data)) data <- data.frame(data)
 
@@ -157,7 +168,8 @@ tidy_kde_truncate <- function(data, boundary, ...) { .tidy_kde_truncate(data, bo
         else args_ks <- c(list(x=x), args_ks)
         fhat <- do.call("kde", args_ks)
         fhat <- do.call("kde.truncate", list(fhat=fhat, boundary=boundary))
-        if (ncol(fhat[["x"]])==1) fhat[["x"]] <- as.vector(fhat[["x"]])
+        if (is.matrix(fhat[["x"]])) 
+            if (ncol(fhat[["x"]])==1) fhat[["x"]] <- as.vector(fhat[["x"]])
         fhat[["group"]] <- dplyr::group_vars(y)
         return(fhat)
     }
@@ -222,7 +234,7 @@ tidy_kda <- function(data, ...) { .tidy_kda(data, ...) }
     gg1 <- dplyr::summarise(data, .groups="keep")
     gg1 <- dplyr::mutate(gg1, ks=list(compute.ks.local(y=data, args_ks=args_ks)))
     gg <- dplyr::group_modify(gg1, .f=~compute.tidy.local(.x,d=d), .keep=TRUE)
-    gg <- dplyr::rename(gg, prior_prob=.data$prior.prob)
+    gg <- dplyr::rename(gg, prior_prob=dplyr::all_of("prior.prob"))
 
     ## create tidy version of partition (x_group)
     eval.points.group <- dplyr::summarise(dplyr::group_by(gg, .data$rn), label=levels(dplyr::pull(gg1,dplyr::group_vars(gg1)))[which.max(.data$estimate)], .groups="keep")
@@ -230,7 +242,6 @@ tidy_kda <- function(data, ...) { .tidy_kda(data, ...) }
     gg <- dplyr::select(gg, -dplyr::one_of("rn"))
     ggv <- dplyr::group_vars(gg)[1]
     gg <- dplyr::mutate(gg, label=ifelse(.data$label==!!sym(ggv), .data$label, NA))
-    #gg <- add_group(data=data, object=gg, group_label=NULL)
 
     if (rename) gg <- rename_ks(data=data, gg=gg, d=d)
     gg <- dplyr::relocate(gg, "prior_prob", .after="estimate")
@@ -258,7 +269,8 @@ tidy_kdde <- function(data, deriv_order=1, ...) { .tidy_kdde(data, deriv_order=d
         if (length(args_ks)==0) args_ks <- list(x=x, deriv.order=deriv_order)
         else args_ks <- c(list(x=x, deriv.order=deriv_order), args_ks)
         fhat <- do.call("kdde", args_ks)
-        if (ncol(fhat[["x"]])==1) fhat[["x"]] <- as.vector(fhat[["x"]])
+        if (is.matrix(fhat[["x"]])) 
+            if (ncol(fhat[["x"]])==1) fhat[["x"]] <- as.vector(fhat[["x"]])
         return(fhat)
     }
 
@@ -354,8 +366,8 @@ tidy_kde_local_test <- function(data1, data2, labels, ...) {
     {
         y1 <- dplyr::filter(y, .data$.group=="data1")
         y2 <- dplyr::filter(y, .data$.group=="data2")
-        y1 <- dplyr::select(y1, -.data$.group)
-        y2 <- dplyr::select(y2, -.data$.group)
+        y1 <- dplyr::select(y1, -dplyr::all_of(".group"))
+        y2 <- dplyr::select(y2, -dplyr::all_of(".group"))
         x1 <- as.matrix(dplyr::select(dplyr::ungroup(y1), dplyr::all_of(vars)))
         x2 <- as.matrix(dplyr::select(dplyr::ungroup(y2), dplyr::all_of(vars)))
         if (ncol(x1)==1) x1 <- as.vector(x1)
@@ -435,7 +447,7 @@ tidy_kroc <- function(data1, data2, ...)
     vars <- setdiff(names(data1), dplyr::groups(data1))
     gg <- dplyr::group_modify(data1, ~dplyr::tibble(ks=list(compute.ks.local(y1=.x, y2=data2, args_ks=args_ks))))
     gg <- dplyr::group_modify(gg, ~compute.tidy(.x, d=1L))
-    gg <- dplyr::rename(gg, fpr=.data$x)
+    gg <- dplyr::rename(gg, fpr=dplyr::all_of("x"))
     gg <- dplyr::mutate(gg, tks="kroc", label="ROC", .before=dplyr::last_col())
     gg <- move_group_vars(gg, data1)
     gg <- as_tidy_ks(gg)
@@ -526,14 +538,14 @@ tidy_kdr <- function(data, dTolerance, ...) { .tidy_kdr(data, dTolerance=dTolera
 
     gg2 <- st_simplify_point(gg2, dTolerance=dTolerance)
     gg2 <- dplyr::group_modify(gg2, .f=~data.frame(coord=sf::st_coordinates(.x)[,1:2]))
-    gg2 <- dplyr::rename(gg2, x=.data$coord.X, y=.data$coord.Y)
+    gg2 <- dplyr::rename(gg2, x=dplyr::all_of("coord.X"), y=dplyr::all_of("coord.Y"))
     gg2 <- dplyr::mutate(gg2, estimate=NA)
-    gg3 <- dplyr::rename(dplyr::slice_head(dplyr::filter(gg, .data$segment==1)), rn=.data$segment)
+    gg3 <- dplyr::rename(dplyr::slice_head(dplyr::filter(gg, .data$segment==1)), rn=dplyr::all_of("segment"))
     gg3 <- dplyr::select(gg3, dplyr::all_of(c(gv, "rn", "ks")))
     gg2 <- dplyr::left_join(dplyr::mutate(gg2, rn=dplyr::row_number()), gg3, by=c(gv, "rn"))
-    gg2 <- dplyr::select(gg2, -.data$rn)
+    gg2 <- dplyr::select(gg2, -dplyr::all_of("rn"))
     gg <- dplyr::mutate(gg2, dTolerance=dTolerance, ks=ifelse(dplyr::row_number()>1, d, .data$ks)) 
-    gg <- dplyr::relocate(gg, .data$segment, .after="estimate")
+    gg <- dplyr::relocate(gg, "segment", .after="estimate")
     gg$segment <- factor(gg$segment)   
     if (rename) gg <- rename_ks(data=data, gg=gg, d=d)
     gg <- dplyr::mutate(gg, tks="kdr", label="Density ridge", .before=dplyr::last_col())
@@ -591,17 +603,17 @@ tidy_kdr_segment <- function(data, dTolerance, coords=1:2, ...)
         gg2 <- st_simplify_point(gg2, dTolerance=dTolerance)
 
         gg2 <- dplyr::group_modify(gg2, .f=~data.frame(sf::st_coordinates(.x)[,1:2]))
-        gg2 <- dplyr::rename(gg2, x=.data$X, y=.data$Y)
+        gg2 <- dplyr::rename(gg2, x=dplyr::all_of("X"), y=dplyr::all_of("Y"))
         gg2 <- dplyr::mutate(gg2, estimate=NA)
 
-        gg3 <- dplyr::rename(dplyr::slice_head(dplyr::filter(gg, .data$segment==1)), rn=.data$segment)
-        gg3 <- dplyr::select(gg3, .data$rn, .data$ks) 
+        gg3 <- dplyr::rename(dplyr::slice_head(dplyr::filter(gg, .data$segment==1)), rn=dplyr::all_of("segment"))
+        gg3 <- dplyr::select(gg3, dplyr::all_of(c("rn","ks")))  
         gg2 <- dplyr::left_join(dplyr::mutate(gg2, rn=dplyr::row_number()), gg3, by=c(gv1, "rn"))
-        gg2 <- dplyr::select(gg2, -.data$rn)
+        gg2 <- dplyr::select(gg2, -dplyr::all_of("rn"))
         gg <- dplyr::mutate(gg2, dTolerance=dTolerance, ks=ifelse(dplyr::row_number()>1, dim_ks(data), .data$ks))
     } 
     
-    gg <- dplyr::relocate(gg, .data$segment, .after="estimate")
+    gg <- dplyr::relocate(gg, "segment", .after="estimate")
     gg$segment <- factor(gg$segment)   
     gg <- rename_ks(data=data, gg=gg, d=dim_ks(data))
     gg <- dplyr::mutate(gg, tks="kdr", label="Density ridge", .before=dplyr::last_col())
@@ -646,7 +658,6 @@ tidy_kms <- function(data, ...) { .tidy_kms(data, ...) }
 
     return(gg)
 }
-
 
 ## tidy version of kernel support estimate
 ## data = tidy kde object
@@ -792,7 +803,7 @@ tidy_kcurv <- function(data, ...) { .tidy_kcurv(data, ...) }
     if (rename) gg <- rename_ks(data=data2, gg=gg, d=d)
     gg <- dplyr::mutate(gg, tks="kcurv", label="Density curv")
     if (length(jv)>1) gg <- dplyr::relocate(gg, dplyr::all_of(jv), .after=dplyr::last_col())
-    gg <- dplyr::select(gg, -.data$deriv_group)
+    gg <- dplyr::select(gg, -dplyr::all_of("deriv_group"))
     gg <- as_tidy_ks(gg)
 
     return(gg)

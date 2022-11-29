@@ -1,7 +1,6 @@
 \name{tidyst_ksupp}
 \alias{tidy_ksupp}
 \alias{st_ksupp}
-
 \title{Tidy and geospatial kernel support estimate}
 
 \description{
@@ -20,7 +19,6 @@ st_ksupp(x, cont=95, convex_hull=TRUE, ...)
     \item{convex_hull}{flag to compute convex hull of contour region. Default is TRUE.}
     \item{...}{other parameters in \code{ks::ksupp} function}
 }
-
 
 \value{
     The output from \code{*_ksupp} have the same structure as the kernel density estimate from \code{\link[=st_kde]{*_kde}}, except that \code{x,y} indicate the boundary of the density support estimate (if \code{convex.hull=TRUE}) or the grid points inside the density support (if \code{convex.hull=FALSE}), rather than the complete grid points themselves.
@@ -41,7 +39,7 @@ t2 <- tidy_ksupp(t1)
 gt <- ggplot2::ggplot(t1, ggplot2::aes(x=FL, y=CW)) 
 gt + geom_contour_filled_ks(cont=c(25,50,75,95), colour=1) +
     ggplot2::geom_polygon(data=t2, ggplot2::aes(linetype=label), fill=NA, colour=1,
-    size=1.2) + colorspace::scale_fill_discrete_sequential() +
+    linewidth=1.2) + colorspace::scale_fill_discrete_sequential() +
     ggplot2::scale_linetype_manual(values="dashed", name="Support\nconvex hull")
 
 gt + ggplot2::geom_polygon(data=t2, ggplot2::aes(colour=label), fill=NA,
@@ -60,10 +58,11 @@ xlim <- c(1.2e5, 1.1e6); ylim <- c(6.1e6, 7.2e6)
 plot(wa, xlim=xlim, ylim=ylim)
 plot(s1, cont=c(25,50,75,95), add=TRUE)
 plot(sf::st_geometry(hakeoides), add=TRUE, pch=16, col=1)
-plot(sf::st_geometry(s2$sf), add=TRUE, lty=2, lwd=2, col="transparent")
+plot(s2, add=TRUE, lty=2, lwd=2)
 
 ## geom_sf plot
-gs1 <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA) 
+gs1 <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA)  + 
+    ggthemes::theme_map()
 gs1 + ggplot2::geom_sf(data=st_get_contour(s1, cont=c(25,50,75,95)),
     ggplot2::aes(fill=label_percent(contlabel))) +
     ggplot2::geom_sf(data=st_get_contour(s2,cont=95), 
@@ -73,8 +72,7 @@ gs1 + ggplot2::geom_sf(data=st_get_contour(s1, cont=c(25,50,75,95)),
     ggplot2::scale_colour_manual(values=1) + 
     ggplot2::guides(colour=ggplot2::guide_legend(title="Locations")) +
     ggplot2::scale_linetype_manual(values="dashed", name="Support\nconvex hull") +
-    ggplot2::coord_sf(xlim=xlim, ylim=ylim) + 
-    ggthemes::theme_map()}
+    ggplot2::coord_sf(xlim=xlim, ylim=ylim)}
 }
 
 \keyword{smooth}

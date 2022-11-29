@@ -1,6 +1,5 @@
 \name{scale_transparent}
 \alias{scale_transparent}
-
 \title{Change individual colours in discrete colour scale to transparent}
 
 \description{
@@ -23,7 +22,5 @@ scale_transparent(x, ind=NULL)
 \examples{
 ## see ? tidy_kdde
 }
-
-
 
 \keyword{graphics}

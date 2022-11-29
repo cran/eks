@@ -1,7 +1,6 @@
 \name{tidyst_kde_local_test}
 \alias{tidy_kde_local_test}
 \alias{st_kde_local_test}
-
 \title{Tidy and geospatial kernel density based local two-sample comparison tests}
 
 \description{
@@ -20,11 +19,10 @@ st_kde_local_test(x1, x2, labels, ...)
     \item{...}{other parameters in \code{ks::kde.local.test} function}
 }
   
-
 \value{
-    The output has the same structure as the 1-d kernel density estimate from \code{\link[=st_kde]{*_kde}}, except that \code{estimate} is the difference between the density values \code{data1-data2} rather than the density values, and \code{label} becomes an indicator factor of the local comparison test result: "f1<f2" = \code{data1 < data2}, 0 = \code{data1 = data2}, "f2>f1" = \code{data1 > data2}.
+    The output has the same structure as the kernel density estimate from \code{\link[=st_kde]{*_kde}}, except that \code{estimate} is the difference between the density values \code{data1-data2} rather than the density values, and \code{label} becomes an indicator factor of the local comparison test result: "f1<f2" = \code{data1 < data2}, 0 = \code{data1 = data2}, "f2>f1" = \code{data1 > data2}.
 
-    The output from \code{st_kde_local_test} has two contours (with \code{contlabel=-50} (for f1<f2) and \code{contlabel=50} (for f1>f2)) as multipolygons which delimit the significant difference regions.
+    The output from \code{st_kde_local_test} has two contours, with \code{contlabel=-50} (for f1<f2) and \code{contlabel=50} (for f1>f2), as multipolygons which delimit the significant difference regions.
 }
 
 \details{
@@ -45,11 +43,10 @@ hsct6 <- dplyr::select(hsct6, PE.Ly65Mac1, APC.CD45.2)
 hsct12 <- dplyr::filter(hsct, subject==12) ## successful graft 
 hsct12 <- dplyr::select(hsct12, PE.Ly65Mac1, APC.CD45.2)
 t1 <- tidy_kde_local_test(data1=hsct6, data2=hsct12)
-cols <- colorspace::qualitative_hcl(palette="Dark2",2)
 gt <- ggplot2::ggplot(t1, ggplot2::aes(x=PE.Ly65Mac1, y=APC.CD45.2)) 
 gt + geom_contour_filled_ks() + 
     scale_transparent(colorspace::scale_fill_discrete_qualitative(
-        palette="Dark2", breaks=c("hsct6<hsct12","hsct6>hsct12"), order=c(1,3,2)))
+        palette="Dark2", rev=TRUE, breaks=c("hsct6<hsct12","hsct6>hsct12"), order=c(2,1,3)))
 
 ## geospatial local test between Grevillea species
 \donttest{data(wa)
@@ -64,11 +61,11 @@ plot(wa, xlim=xlim, ylim=ylim)
 plot(s1, add=TRUE)
 
 ## geom_sf plot
-gs <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA) 
+gs <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA)  + 
+    ggthemes::theme_map() 
 gs + ggplot2::geom_sf(data=st_get_contour(s1), ggplot2::aes(fill=label)) +
-    colorspace::scale_fill_discrete_qualitative(palette="Dark2") +
-    ggplot2::coord_sf(xlim=xlim, ylim=ylim) + 
-    ggthemes::theme_map()} 
+    colorspace::scale_fill_discrete_qualitative(palette="Dark2", rev=TRUE) +
+    ggplot2::coord_sf(xlim=xlim, ylim=ylim)} 
 }
 
 \keyword{smooth}

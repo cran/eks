@@ -1,5 +1,18 @@
 Change log file for eks
 
+1.0.2
+-Replaced '.data$x' variable selection with 'aplyr::all_of("x")' for 
+ compatibility with tidy_select 1.2.0. 
+-Replaced size with linewidth aesthetic for compatibility with 
+ ggplot2 3.4.0.
+-Added explicit dropped_aes field in StatPointKs*, StatContourKs, 
+ StatContourFilledKs to ensure warnings about dropped aesthestics are not 
+ displayed in ggplot2 3.4.0.
+-Changed default stat for geom_rug_ks to stat="rug_ks".
+-Fixed default colour palette in plot.ks_sf for st_kda objects to be
+ aligned with ks::plot_kda. 
+-Changed default legend display flag to legend=TRUE in plot.ks_sf(). 
+
 1.0.1
 -Fixed bugs in legend in plot method for sf_ks objects.
 -Added arXiv DOI.

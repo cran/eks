@@ -1,6 +1,5 @@
 \name{st_add_coordinates}
 \alias{st_add_coordinates}
-
 \title{Add coordinates as attributes to geospatial data}
 
 \description{
@@ -19,7 +18,7 @@ st_add_coordinates(x, as_sf=FALSE, as_tibble=FALSE, rename=TRUE)
 }
 
 \value{
-    The longitude and latitude of the point geometry are added as \code{X,Y} attributes.  
+    The longitude and latitude of the point geometry are added as attributes.  
 }
 
 \details{
@@ -31,7 +30,5 @@ data(grevilleasf)
 hakeoides <- dplyr::filter(grevilleasf, species=="hakeoides")
 hakeoides_coord <- st_add_coordinates(hakeoides)
 }
-
-
 
 \keyword{smooth}

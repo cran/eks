@@ -3,7 +3,6 @@
 \alias{tidy_kde_truncate}
 \alias{st_kde_boundary}
 \alias{st_kde_truncate}
-
 \title{Tidy and geospatial kernel density estimates with boundary and truncated kernels}
 
 \description{
@@ -24,7 +23,6 @@ st_kde_truncate(x, boundary, ...)
     \item{...}{other parameters in \code{ks::kde.boundary} function}
 }
   
-
 \value{
    The outputs from \code{*_kde_boundary}, \code{*_kde_truncate} have the same structure as the standard kernel density estimate from \code{\link[=st_kde]{*_kde}}. 
 }
@@ -36,7 +34,6 @@ st_kde_truncate(x, boundary, ...)
 
     For details of the computation of the boundary kernel estimates and the truncated kernel density estimates, and of the bandwidth selector procedure, see \code{ks::kde.boundary}, \code{ks::kde.truncate}.
 }
-
 
 \examples{
 ## tidy boundary density estimates
@@ -90,21 +87,27 @@ plot(wa, xlim=xlim, ylim=ylim)
 plot(hakeoides_bbox, add=TRUE, lty=3, lwd=2)
 plot(s1, add=TRUE, border=1, col="transparent", legend=FALSE)
 plot(s2, add=TRUE, border=2, col="transparent", legend=FALSE)
+mapsf::mf_legend(type="symb", val=c("Standard KDE","Beta bd KDE"), pal=c(1,2), 
+    pt_cex=rep(3,2), pt_pch=rep("-",2), title="Density", pos="bottomleft")
 
 plot(wa, xlim=xlim, ylim=ylim)
 plot(hakeoides_bbox, add=TRUE, lty=3, lwd=2)
 plot(s1, add=TRUE, border=1, col="transparent", legend=FALSE)
 plot(s3, add=TRUE, border=3, col="transparent", legend=FALSE)
+mapsf::mf_legend(type="symb", val=c("Standard KDE","Linear bd KDE"), pal=c(1,3), 
+    pt_cex=rep(3,2), pt_pch=rep("-",2), title="Density", pos="bottomleft")
 
 plot(wa, xlim=xlim, ylim=ylim)
 plot(hakeoides_bbox, add=TRUE, lty=3, lwd=2)
 plot(s1, add=TRUE, border=1, col="transparent", legend=FALSE)
 plot(s4, add=TRUE, border=4, col="transparent", legend=FALSE)
+mapsf::mf_legend(type="symb", val=c("Standard KDE","Truncated KDE"), pal=c(1,4), 
+    pt_cex=rep(3,2), pt_pch=rep("-",2), title="Density", pos="bottomleft")
 
 ## geom_sf plots
 gs <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA) + 
-    ggplot2::geom_sf(data=sf::st_as_sfc(sf::st_bbox(hakeoides_crop)), 
-    size=1.2, linetype="dotted", fill=NA) + 
+    ggplot2::geom_sf(data=hakeoides_bbox, 
+    linewidth=1.2, linetype="dotted", fill=NA) + 
     ggplot2::geom_sf(data=dplyr::mutate(st_get_contour(s1), gr="Standard KDE"), 
         ggplot2::aes(colour=gr), fill=NA) + 
     ggthemes::theme_map()

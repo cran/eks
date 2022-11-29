@@ -1,7 +1,6 @@
 \name{tidyst_kdcde}
 \alias{tidy_kdcde}
 \alias{st_kdcde}
-
 \title{Tidy and geospatial kernel deconvolved density estimates}
 
 \description{
@@ -27,9 +26,8 @@ st_kdcde(x,...)
     A deconvolved kernel density estimate is a modification of the standard density estimate for data observed with error. This version is based on a weighted kernel density estimate. For details of the computation of the kernel deconvolved density estimate and the bandwidth selector procedure, see \code{?ks::kdcde}. 
 }
 
-\examples{
-## tidy 2-d deconvolved density estimate
-\donttest{data(air, package="ks")
+\examples{\donttest{## tidy 2-d deconvolved density estimate
+data(air, package="ks")
 air <- na.omit(air[, c("time","co2","pm10")])
 air <- dplyr::filter(air, time=="20:00")
 air <- dplyr::select(air, co2, pm10)

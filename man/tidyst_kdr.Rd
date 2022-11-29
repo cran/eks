@@ -1,7 +1,6 @@
 \name{tidyst_kdr}
 \alias{tidy_kdr}
 \alias{st_kdr}
-
 \title{Tidy and geospatial kernel density ridge estimates}
 
 \description{
@@ -20,13 +19,12 @@ st_kdr(x, dTolerance, ...)
     \item{...}{other parameters in \code{ks::kdr} function}
 }
 
-
 \value{
-    The output from \code{*_kdr} have the same structure as the kernel density estimate from \code{\link[=st_kde]{*_kde}}, except that \code{x,y} indicate the points on the density ridge, rather than the grid points themselves, and \code{estimate} becomes NA. For \code{st_kdr}, the density ridge is stored as multipoints \code{sf} object.
+    The output from \code{*_kdr} have the same structure as the kernel density estimate from \code{\link[=st_kde]{*_kde}}, except that \code{x,y} indicate the points on the density ridge, rather than the grid points themselves, and \code{estimate} becomes NA. For \code{st_kdr}, the density ridge is stored as a multipoints \code{sf} object.
 }
 
 \details{
-    A density ridge can be be interpreted as the line connecting the peaks in the kernel density estimate, like for a mountain range. It can also be interpreted as the filament generalisation of 2-d principal components.  For details of the computation and the bandwidth selection procedure of the kernel density ridge estimate, see \code{?ks::kdr}. The bandwidth matrix of smoothing parameters is computed as in \code{ks::kdde(deriv_order=2)}.
+    A density ridge can be interpreted as the line connecting the peaks in the kernel density estimate, like for a mountain range. It can also be interpreted as the filament generalisation of 2-d principal components.  For details of the computation and the bandwidth selection procedure of the kernel density ridge estimate, see \code{?ks::kdr}. The bandwidth matrix of smoothing parameters is computed as in \code{ks::kdde(deriv_order=2)}.
 
     To reduce the complexity of the density ridge, a call to \code{sf::st_simplify(,dTolerance)} is made. If \code{dTolerance} is missing, then it defaults to approximately the mean distance between each pair of consecutive points in each segment of the density ridge. If \code{dTolerance=0} then this step of Ramer-Douglas-Peucker simplification is not carried out.
 }
@@ -60,12 +58,12 @@ plot(sf::st_geometry(hakeoides), add=TRUE, col=3, pch=16)
 plot(s1, add=TRUE, col=6, lwd=3, alpha=0.8)
 
 ## geom_sf plot
-gs <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA) 
+gs <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA) +
+    ggthemes::theme_map()
 gs + ggplot2::geom_sf(data=hakeoides, colour=3, alpha=0.5) +
-    ggplot2::geom_sf(data=s1$sf, ggplot2::aes(colour=label), size=1.2, alpha=0.8) +
+    ggplot2::geom_sf(data=s1$sf, ggplot2::aes(colour=label), linewidth=1.2, alpha=0.8) +
     ggplot2::scale_colour_manual(values=6) +
-    ggplot2::coord_sf(xlim=xlim, ylim=ylim) +
-    ggthemes::theme_map() 
+    ggplot2::coord_sf(xlim=xlim, ylim=ylim) 
 }
 
 \keyword{smooth}

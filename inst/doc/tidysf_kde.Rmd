@@ -129,11 +129,10 @@ mapsf::mf_legend(type="symb", val=c("Grevillea eryngioides", "Grevillea paradoxa
    pos="topright")
 mapsf::mf_scale(size=200, lwd=4)
 ## geom_sf scatter plot 
-theme_set(ggthemes::theme_map())
-theme_update(legend.position=c(0.99,0.99), legend.justification=c(1,1))
 gsc <- ggspatial::annotation_scale(data=data.frame(name="Grevillea paradoxa"), 
    location="br", width_hint=0.2, bar_cols=1)
-
+theme_set(ggthemes::theme_map())
+theme_update(legend.position=c(0.99,0.99), legend.justification=c(1,1)) 
 ggplot() + gwa + gsc + 
    geom_sf(data=grevillea_ep, aes(colour=name, shape=name), alpha=0.5) + 
    coord_sf(xlim=xlim, ylim=ylim) + scale_colour_manual(values=c(3, 6)) + 
@@ -148,7 +147,7 @@ skde1 <- st_kde(paradoxa)
 ## base R contour plot
 plot(st_geometry(wa), xlim=xlim, ylim=ylim)
 plot(st_geometry(paradoxa), add=TRUE, pch=16, col=alpha(8,0.5))
-plot(skde1, add=TRUE, col=NA, border=1)
+plot(skde1, add=TRUE, col=NA, border=1, legend=FALSE)
 mapsf::mf_scale(size=200, lwd=4)
 ```
 On the other hand, we can't replicate exactly the default contour selection in ```geom_sf```, so we first apply the auxiliary function ```st_get_contour``` to the input of ```geom_sf```.  
@@ -158,7 +157,8 @@ On the other hand, we can't replicate exactly the default contour selection in `
 gs <- ggplot(skde1) + gwa + gsc
 gs + geom_sf(data=paradoxa, col=8, alpha=0.5) + 
    geom_sf(data=st_get_contour(skde1), aes(fill=contlabel), 
-   colour=1, alpha=0, show.legend=FALSE) + coord_sf(xlim=xlim, ylim=ylim)
+   colour=1, alpha=0, show.legend=FALSE) + coord_sf(xlim=xlim, ylim=ylim) +
+   ggthemes::theme_map()
 ```
 
 To generate a filled contour plot, the only required changes are to input an appropriate colour scale function, and for a base ```R``` plot, to set ```legend=TRUE``` since its default value is ```FALSE```.   
@@ -166,24 +166,13 @@ To generate a filled contour plot, the only required changes are to input an app
 ```{r}
 ## R base filled contour plot
 plot(st_geometry(wa), xlim=xlim, ylim=ylim)
-plot(skde1, add=TRUE, pal=function(.){sequential_hcl(n=., h1=275, rev=TRUE)}, 
-   legend=TRUE)
+plot(skde1, add=TRUE, pal=function(.) { sequential_hcl(n=., h1=275, rev=TRUE) })
 mapsf::mf_scale(size=200, lwd=4)
 ## geom_sf filled contour
 gs + geom_sf(data=st_get_contour(skde1), aes(fill=label_percent(contlabel))) + 
   scale_fill_discrete_sequential(h1=275)  + 
-  coord_sf(xlim=xlim, ylim=ylim)
+  coord_sf(xlim=xlim, ylim=ylim) + ggthemes::theme_map()
 ```
-
-<!--The default bandwidth and the resulting KDE computed by ```ggplot2::geom_density_2d``` leads to an oversmoothed KDE which obscures important details in the data distribution.
-
-```{r}
-## geom_density_2d KDE contour plot  
-gs + geom_density_2d_filled(data=data.frame(st_coordinates(paradoxa)), 
-   aes(x=X, y=Y), bins=4, colour=1) + 
-   scale_fill_discrete_sequential(h1=275) + coord_sf(xlim=xlim, ylim=ylim)
-```
-!-->
 
 Since the output from ```st_kde``` is compatible with ```geom_sf```, then it is easy to generate multiple maps of related geospatial KDEs. For example, KDEs for each Grevillea species, with probability contour levels or with fixed contour levels:
 
@@ -194,12 +183,12 @@ skde1g <- st_kde(grevillea_ep)
 gsg <- ggplot(skde1g) + gwa + gsc
 gsg + geom_sf(data=st_get_contour(skde1g), aes(fill=label_percent(contlabel))) + 
    scale_fill_discrete_sequential(h1=275) + 
-   facet_wrap(~name) + coord_sf(xlim=xlim, ylim=ylim)
+   facet_wrap(~name) + coord_sf(xlim=xlim, ylim=ylim) + ggthemes::theme_map()
 ## facetted geom_sf filled contour with fixed contour levels for all facets
 bkde1g <- contour_breaks(skde1g)
 gsg + geom_sf(data=st_get_contour(skde1g, breaks=bkde1g), aes(fill=contlabel)) +
    scale_fill_discrete_sequential(h1=275) + facet_wrap(~name) + 
-   coord_sf(xlim=xlim, ylim=ylim)
+   coord_sf(xlim=xlim, ylim=ylim) + ggthemes::theme_map()
 ```
 
 ## References

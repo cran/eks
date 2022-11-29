@@ -1,7 +1,6 @@
 \name{tidyst_kde}
 \alias{tidy_kde}
 \alias{st_kde}
-
 \title{Tidy and geospatial kernel density estimates}
 
 \description{
@@ -36,13 +35,13 @@ st_kde(x, ...)
 }
 
 \details{
-    For \code{tidy_kde}, for first columns of the output tibble are copied from \code{aes(x)} (1-d) or \code{aes(x,y)} (2-d). These columns are the evaluation grid points. The \code{estimate} column is the kernel density values at these grid points. The \code{group} column is a copy of the grouping variable of the input data. The \code{ks} column is a copy of the untidy kernel estimate from \code{ks::kde}. Since the calculations for the layer functions \code{\link{geom_contour_ks}}, \code{\link{geom_contour_filled_ks}} require both the observations \code{data} and the kernel estimate as a \code{kde} object, it is the current workaround. For this reason, it is advised to compute a tidy kernel estimate first and then to create a \code{ggplot} with this tidy kernel estimate as the default data in the layer. %, rather than creating a \code{ggplot} with the original observations \code{data} as the data layer and then applying the \code{tidy_k*} functions to compute the kernel estimates.
+    For \code{tidy_kde}, the first columns of the output tibble are copied from \code{aes(x)} (1-d) or \code{aes(x,y)} (2-d). These columns are the evaluation grid points. The \code{estimate} column is the kernel density values at these grid points. The \code{group} column is a copy of the grouping variable of the input data. The \code{ks} column is a copy of the untidy kernel estimate from \code{ks::kde}, since the calculations for the layer functions \code{\link{geom_contour_ks}}, \code{\link{geom_contour_filled_ks}} require both the observations \code{data} and the kernel estimate as a \code{kde} object. For this reason, it is advised to compute a tidy kernel estimate first and then to create a \code{ggplot} with this tidy kernel estimate as the default \code{data} in the layer. 
 
     For \code{st_kde}, the output list contains the field \code{tidy_ks} which is the output from \code{tidy_ks}. The field \code{grid} is the kernel estimate values, with rectangular polygons. The field \code{sf} is the 1\% to 99\% probability contour regions as multipolygons, with the derived attribute \code{contlabel = 100\%-cont}.
 
     The structure of the \code{tidy_kde} output is inherited from the input, i.e. if the input is a data frame/ (grouped) tibble then the output is a data frame/(grouped) tibble. Likewise for the \code{sf} object outputs for \code{st_kde}.
 
-    The default bandwidth matrix is the unconstrained plug-in selector \code{ks::Hpi}, which is suitable for a wide range of data sets, since is not restrained to smoothing along the coordinate axes. This produces a kernel estimate which is more representative of the data than with the default bandwidth in \code{geom_density_2d} and \code{geom_density_2d_filled}. For further details of the computation of the kernel density estimate and the bandwidth selector procedure, see \code{?ks::kde}. %This unconstrained bandwidth selector procedure applies to all \code{tidy_k*} and \code{st_k*} functions.
+    The default bandwidth matrix is the unconstrained plug-in selector \code{ks::Hpi}, which is suitable for a wide range of data sets, since it is not restrained to smoothing along the coordinate axes. This produces a kernel estimate which is more representative of the data than with the default bandwidth in \code{geom_density_2d} and \code{geom_density_2d_filled}. For further details of the computation of the kernel density estimate and the bandwidth selector procedure, see \code{?ks::kde}.
 }
 
 \examples{
@@ -71,8 +70,7 @@ gt3 + ggplot2::geom_density_2d_filled(bins=4, colour=1) +
     ggplot2::guides(fill=ggplot2::guide_legend(title="Density", reverse=TRUE))
 
 ## facet wrapped geom_sf plot with fixed contour levels for all facets
-\donttest{
-crabs3 <- dplyr::select(crabs, FL, CW, sex)
+\donttest{crabs3 <- dplyr::select(crabs, FL, CW, sex)
 t3 <- tidy_kde(dplyr::group_by(crabs3, sex))
 b <- contour_breaks(t3)
 gt3 <- ggplot2::ggplot(t3, ggplot2::aes(x=FL, y=CW)) 
@@ -94,22 +92,22 @@ plot(s1, add=TRUE)
 
 ## geom_sf plot
 ## suitable smoothing matrix gives optimally smoothed contours
-gs1 <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA) 
-gs1 + ggplot2::geom_sf(data=st_get_contour(s1), ggplot2::aes(fill=label_percent(contlabel))) +
-    colorspace::scale_fill_discrete_sequential(palette="Heat2") +
-    ggplot2::coord_sf(xlim=xlim, ylim=ylim) + 
+gs1 <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA) + 
     ggthemes::theme_map()
+gs1 + ggplot2::geom_sf(data=st_get_contour(s1), 
+    ggplot2::aes(fill=label_percent(contlabel))) +
+    colorspace::scale_fill_discrete_sequential(palette="Heat2") +
+    ggplot2::coord_sf(xlim=xlim, ylim=ylim) 
 
 ## default smoothing matrix in geom_density_2d_filled() is oversmoothed
-gs2 <- ggplot2::ggplot(hakeoides_coord) + ggplot2::geom_sf(data=wa, fill=NA) 
+gs2 <- ggplot2::ggplot(hakeoides_coord) + ggplot2::geom_sf(data=wa, fill=NA) + 
+    ggthemes::theme_map()
 gs2 + ggplot2::geom_density_2d_filled(ggplot2::aes(x=X, y=Y), bins=4, colour=1) +
     colorspace::scale_fill_discrete_sequential(palette="Heat2") +
     ggplot2::guides(fill=ggplot2::guide_legend(title="Density", reverse=TRUE)) +
-    ggplot2::coord_sf(xlim=xlim, ylim=ylim) + 
-    ggthemes::theme_map()}
+    ggplot2::coord_sf(xlim=xlim, ylim=ylim)} 
 
-\dontrun{
-## export as geopackage for external GIS software
+\dontrun{## export as geopackage for external GIS software
 sf::write_sf(wa, dsn="grevillea.gpkg", layer="wa")
 sf::write_sf(hakeoides, dsn="grevillea.gpkg", layer="hakeoides")
 sf::write_sf(gs1_cont, dsn="grevillea.gpkg", layer="hakeoides_cont")

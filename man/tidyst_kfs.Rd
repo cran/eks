@@ -1,7 +1,6 @@
 \name{tidyst_kfs}
 \alias{tidy_kfs}
 \alias{st_kfs}
-
 \title{Tidy and geospatial kernel feature significance}
 
 \description{
@@ -19,11 +18,10 @@ st_kfs(x, ...)
     \item{...}{other parameters in \code{ks::kfs} function}
 }
   
-
 \value{
    The output from \code{tidy_kfs} has the same structure as the kernel density estimate from \code{\link{tidy_kde}}, except that all values of \code{estimate} outside of the significant curvature regions are set to zero, and the \code{label} indicates whether the corresponding \code{x,y} point is inside a significant curvature region. 
    
-   The output from \code{st_kfs} has a single contour (with \code{contlabel=50}) as a multipolygon which delimits significant curvature regions. 
+   The output from \code{st_kfs} has a single contour, with \code{contlabel=50}, as a multipolygon which delimits significant curvature regions. 
 }
  
 \details{
@@ -56,11 +54,11 @@ plot(wa, xlim=xlim, ylim=ylim)
 plot(s1, add=TRUE)
 
 ## geom_sf plot
-gs <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA) 
+gs <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA) + 
+    ggthemes::theme_map() 
 gs + ggplot2::geom_sf(data=st_get_contour(s1, cont=50), ggplot2::aes(fill=label)) +
     ggplot2::scale_fill_manual(values=7) +
-    ggplot2::coord_sf(xlim=xlim, ylim=ylim) + 
-    ggthemes::theme_map()}
+    ggplot2::coord_sf(xlim=xlim, ylim=ylim)}
 }
 
 \keyword{smooth}

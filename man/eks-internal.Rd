@@ -5,7 +5,6 @@
 \alias{st_ks}
 \alias{st_cast_ks}
 \alias{st_remove_long_segment}
-
 \title{Internal functions in the eks library}
 
 \description{These functions are user-level but which the user is not required to use directly.}
