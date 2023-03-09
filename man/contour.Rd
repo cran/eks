@@ -11,8 +11,8 @@
 }
 
 \usage{
-\method{contourLevels}{tidy_ks}(x, cont=c(25,50,75), group=FALSE)
-\method{contourLevels}{sf_ks}(x, cont=c(25,50,75), group=FALSE)
+\method{contourLevels}{tidy_ks}(x, cont=c(25,50,75), group=FALSE, ...)
+\method{contourLevels}{sf_ks}(x, cont=c(25,50,75), group=FALSE, ...)
 contour_breaks(data, cont=c(25,50,75), group=FALSE)
 label_percent(y)
 
@@ -28,7 +28,8 @@ st_get_contour(x, cont=c(25,50,75), breaks, which_deriv_ind, disjoint=TRUE,
     \item{which_deriv_ind}{derivative index (only required for \code{st_kdde} objects)}
     \item{disjoint}{flag to compute disjoint contours. Default is TRUE.}
     \item{as_point}{flag to return polygons as point coordinates in tidy format. Default is TRUE.}  
-    \item{y}{factor variable}    
+    \item{y}{factor variable}
+    \item{...}{other parameters (not implemented)}    
 }
 
 \value{

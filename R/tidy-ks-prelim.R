@@ -355,7 +355,7 @@ contour_breaks <- function(data, cont=c(25,50,75), group=FALSE)
 
 ## contour levels method for tidy_ks opjects
 
-contourLevels.tidy_ks <- function(x, cont=c(25,50,75), group=FALSE)
+contourLevels.tidy_ks <- function(x, cont=c(25,50,75), group=FALSE, ...)
 {
     data <- x
     oc <- head(x$tks,1) 
@@ -370,7 +370,8 @@ contourLevels.tidy_ks <- function(x, cont=c(25,50,75), group=FALSE)
         gg <- dplyr::group_modify(.data=gg, .f=~dplyr::tibble(breaks=.contourLevels(untidy_ks(.x), cont=cont, approx.cont=TRUE)))
 
     gg <- dplyr::mutate(gg, breaks=ifelse(dplyr::row_number()==dplyr::n(), max(gg$breaks), .data$breaks))
-    if (!group) {
+    if (!group) 
+    {
         gg <- dplyr::mutate(gg, group_breaks=dplyr::row_number())
         gg <- dplyr::group_by(gg, .data$group_breaks)
         ggbreaks <- dplyr::summarise(gg, min=min(.data$breaks), max=max(.data$breaks), .groups="drop_last")
@@ -380,7 +381,6 @@ contourLevels.tidy_ks <- function(x, cont=c(25,50,75), group=FALSE)
     else ggbreaks <- gg
 
     return(ggbreaks)
-
 }
 
 ## fhat = untidy ks object

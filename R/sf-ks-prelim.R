@@ -188,7 +188,7 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
     }
 }
 
-contourLevels.sf_ks <- function(x, cont=c(25,50,75), group=FALSE) { ks::contourLevels(x=x$tidy_ks, cont=cont, group=group) }
+contourLevels.sf_ks <- function(x, cont=c(25,50,75), group=FALSE, ...) { ks::contourLevels(x=x$tidy_ks, cont=cont, group=group, ...) }
 
 ## extract or compute new contours
 ## x = ks_sf object

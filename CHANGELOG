@@ -1,7 +1,11 @@
 Change log file for eks
 
+1.0.3
+-Modified contourLevels method for tidy_ks objects to resolve S3
+ generic/method inconsistency.  
+
 1.0.2
--Replaced '.data$x' variable selection with 'aplyr::all_of("x")' for 
+-Replaced '.data$x' variable selection with 'dplyr::all_of("x")' for 
  compatibility with tidy_select 1.2.0. 
 -Replaced size with linewidth aesthetic for compatibility with 
  ggplot2 3.4.0.
