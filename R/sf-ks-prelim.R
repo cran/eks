@@ -173,7 +173,7 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
                 gv <- levels(dplyr::pull(sf::st_drop_geometry(y), .data$label))
                 nc <- length(gv)
                 formsg <- list(...)
-                if (is.null(formsg$pch)) pch <- 1 else pch <- formsg$pch 
+                if (is.null(formsg$pch)) pch <- 1 else pch <- unique(formsg$pch) 
                 do.call("mfls", args=c(list(val=gv, pal=pal(nc), pos=pos, title=gu.title, pt_cex=rep(1,nc), pt_pch=rep(pch,nc)), forms))
             }
             else if (oc %in% "kde.loctest")

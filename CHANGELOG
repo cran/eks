@@ -1,5 +1,9 @@
 Change log file for eks
 
+1.0.4
+-Fixed bug in legend display in plot.sf_ks for "kms" class. 
+-Remove alpha transparency values in displays in vignette.  
+
 1.0.3
 -Modified contourLevels method for tidy_ks objects to resolve S3
  generic/method inconsistency.  
