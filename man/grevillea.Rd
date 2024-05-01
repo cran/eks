@@ -23,7 +23,7 @@ data(grevilleasf)
 } 
 
 \source{
-Atlas of Living Australia (2021). Grevillea occurrence. \url{https://biocache.ala.org.au}. Accessed on 2021-08-18. 
+Atlas of Living Australia (2021). Grevillea occurrence. \url{https://www.ala.org.au}. Accessed on 2021-08-18. 
 
 Geoscape Australia (2021). WA State Boundary -- Geoscape Administrative Boundaries. \url{https://data.gov.au/data/dataset/wa-state-boundary-geoscape-administrative-boundaries}.  Accessed on 2021-08-18. 
 }

@@ -46,37 +46,36 @@ st_kde(x, ...)
 
 \examples{
 ## tidy density estimates
+library(ggplot2)
 data(crabs, package="MASS")
 ## tidy 1-d density estimate per species
 crabs1 <- dplyr::select(crabs, FL, sp)
 crabs1 <- dplyr::group_by(crabs1, sp)
 t1 <- tidy_kde(crabs1)
-gt1 <- ggplot2::ggplot(t1, ggplot2::aes(x=FL)) 
-gt1 + ggplot2::geom_line(colour=1) + geom_rug_ks(colour=4) +
-    ggplot2::facet_wrap(~sp)
+gt1 <- ggplot(t1, aes(x=FL)) 
+gt1 + geom_line(colour=1) + geom_rug_ks(colour=4) + facet_wrap(~sp)
 
 ## tidy 2-d density estimate
 ## suitable smoothing matrix gives bimodal estimate
 crabs2 <- dplyr::select(crabs, FL, CW)
 t2 <- tidy_kde(crabs2)
-gt2 <- ggplot2::ggplot(t2, ggplot2::aes(x=FL, y=CW)) 
+gt2 <- ggplot(t2, aes(x=FL, y=CW)) 
 gt2 + geom_contour_filled_ks(colour=1) + 
     colorspace::scale_fill_discrete_sequential()
 
 ## default smoothing matrix in geom_density_2d_filled() gives unimodal estimate
-gt3 <- ggplot2::ggplot(crabs2, ggplot2::aes(x=FL, y=CW)) 
-gt3 + ggplot2::geom_density_2d_filled(bins=4, colour=1) +
+gt3 <- ggplot(crabs2, aes(x=FL, y=CW)) 
+gt3 + geom_density_2d_filled(bins=4, colour=1) +
     colorspace::scale_fill_discrete_sequential() +
-    ggplot2::guides(fill=ggplot2::guide_legend(title="Density", reverse=TRUE))
+    guides(fill=guide_legend(title="Density", reverse=TRUE))
 
 ## facet wrapped geom_sf plot with fixed contour levels for all facets
 \donttest{crabs3 <- dplyr::select(crabs, FL, CW, sex)
 t3 <- tidy_kde(dplyr::group_by(crabs3, sex))
 b <- contour_breaks(t3)
-gt3 <- ggplot2::ggplot(t3, ggplot2::aes(x=FL, y=CW)) 
+gt3 <- ggplot(t3, aes(x=FL, y=CW)) 
 gt3 + geom_contour_filled_ks(colour=1, breaks=b) + 
-    colorspace::scale_fill_discrete_sequential() +
-    ggplot2::facet_wrap(~sex)
+    colorspace::scale_fill_discrete_sequential() + facet_wrap(~sex)
 
 ## geospatial density estimate
 data(wa)
@@ -92,20 +91,18 @@ plot(s1, add=TRUE)
 
 ## geom_sf plot
 ## suitable smoothing matrix gives optimally smoothed contours
-gs1 <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA) + 
-    ggthemes::theme_map()
-gs1 + ggplot2::geom_sf(data=st_get_contour(s1), 
-    ggplot2::aes(fill=label_percent(contlabel))) +
-    colorspace::scale_fill_discrete_sequential(palette="Heat2") +
-    ggplot2::coord_sf(xlim=xlim, ylim=ylim) 
+gs1 <- ggplot(s1) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map() +
+    colorspace::scale_fill_discrete_sequential(palette="Heat2") 
+gs1 + geom_sf(data=st_get_contour(s1), aes(fill=label_percent(contlabel))) +
+    coord_sf(xlim=xlim, ylim=ylim) 
 
 ## default smoothing matrix in geom_density_2d_filled() is oversmoothed
-gs2 <- ggplot2::ggplot(hakeoides_coord) + ggplot2::geom_sf(data=wa, fill=NA) + 
+gs2 <- ggplot(hakeoides_coord) + geom_sf(data=wa, fill=NA) + 
     ggthemes::theme_map()
-gs2 + ggplot2::geom_density_2d_filled(ggplot2::aes(x=X, y=Y), bins=4, colour=1) +
+gs2 + geom_density_2d_filled(aes(x=X, y=Y), bins=4, colour=1) +
     colorspace::scale_fill_discrete_sequential(palette="Heat2") +
-    ggplot2::guides(fill=ggplot2::guide_legend(title="Density", reverse=TRUE)) +
-    ggplot2::coord_sf(xlim=xlim, ylim=ylim)} 
+    guides(fill=guide_legend(title="Density", reverse=TRUE)) +
+    coord_sf(xlim=xlim, ylim=ylim)} 
 
 \dontrun{## export as geopackage for external GIS software
 sf::write_sf(wa, dsn="grevillea.gpkg", layer="wa")

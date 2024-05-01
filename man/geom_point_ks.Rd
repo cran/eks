@@ -91,23 +91,23 @@ the default plot specification, e.g. \code{borders()}.}
     These layer functions are modifications of the standard layer functions \code{ggplot2::geom_point}, \code{ggplot2::geom_rug} and \code{ggplot2::stat_point}. Their usage and output are similar, except that they require a tidy kernel estimate as the input, rather than the observations themselves. For most cases, \code{geom_rug_ks} is equivalent to \code{geom_rug(stat="rug_ks")}, and likewise for \code{geom_point_ks}. 
 }
 
-\examples{
+\examples{library(ggplot2)
 data(crabs, package="MASS")
 
 ## rug plot for tidy 1-d kernel density estimate
 crabs1 <- dplyr::select(crabs, FL)
 t1 <- tidy_kde(crabs1)
-g1 <- ggplot2::ggplot(t1, ggplot2::aes(x=FL)) + ggplot2::geom_line()
+g1 <- ggplot(t1, aes(x=FL)) + geom_line()
 g1 + geom_rug_ks(colour=4) 
-g1 + ggplot2::geom_rug(stat="rug_ks", colour=4) ## same output
+g1 + geom_rug(stat="rug_ks", colour=4) ## same output
 
 ## scatter plot for tidy 2-d kernel density estimate
 crabs2 <- dplyr::select(crabs, FL, CW)
 t2 <- tidy_kde(crabs2)
-g2 <- ggplot2::ggplot(t2, ggplot2::aes(x=FL, y=CW)) 
+g2 <- ggplot(t2, aes(x=FL, y=CW)) 
 g2 + geom_contour_ks(colour=1) + geom_point_ks(colour=4) 
-g2 + ggplot2::geom_contour(stat="contour_ks", colour=1) +
-    ggplot2::geom_point(stat="point_ks", colour=4) ## same output
+g2 + geom_contour(stat="contour_ks", colour=1) +
+    geom_point(stat="point_ks", colour=4) ## same output
 }
 
 \keyword{hplot}   

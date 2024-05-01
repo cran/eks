@@ -28,20 +28,19 @@ st_kcde(x, ...)
  	For details of the computation of the kernel distribution and copula estimates, and of the bandwidth selector procedures, see \code{?ks::kcde}, \code{?ks::kcopula}.
 }
 
-\examples{
+\examples{library(ggplot2)
 data(crabs, package="MASS")
 ## tidy 1-d distribution estimate per species
 crabs1 <- dplyr::select(crabs, FL, sp)
 crabs1 <- dplyr::group_by(crabs1, sp)
 t1 <- tidy_kcde(crabs1)
-gt1 <- ggplot2::ggplot(t1, ggplot2::aes(x=FL)) 
-gt1 + ggplot2::geom_line(colour=1) + geom_rug_ks(colour=4) +
-    ggplot2::facet_wrap(~sp)
+gt1 <- ggplot(t1, aes(x=FL)) 
+gt1 + geom_line(colour=1) + geom_rug_ks(colour=4) + facet_wrap(~sp)
 
 ## tidy 2-d copula estimate
 crabs2 <- dplyr::select(crabs, FL, CW)
 t2 <- tidy_kcopula(crabs2)
-gt2 <- ggplot2::ggplot(t2, ggplot2::aes(x=FL, y=CW)) 
+gt2 <- ggplot(t2, aes(x=FL, y=CW)) 
 gt2 + geom_contour_filled_ks(colour=1, cont=seq(10,90,by=10))
 
 ## geospatial distribution estimate
@@ -61,14 +60,10 @@ plot(paradoxa_bbox, add=TRUE, lty=3, lwd=2)
 plot(s1, add=TRUE)
 
 ## geom_sf filled contour plot
-gs1 <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA) + 
-    ggthemes::theme_map() 
-gs1 + ggplot2::geom_sf(data=paradoxa_bbox, linewidth=1.2, 
-    linetype="dotted", fill=NA) +
-    ggplot2::geom_sf(data=st_get_contour(s1), 
-    ggplot2::aes(fill=label_percent(contlabel))) +
-    ggplot2::scale_fill_viridis_d() +
-    ggplot2::coord_sf(xlim=xlim, ylim=ylim)}
+gs1 <- ggplot(s1) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map() 
+gs1 + geom_sf(data=paradoxa_bbox, linewidth=1.2, linetype="dotted", fill=NA) +
+    geom_sf(data=st_get_contour(s1), aes(fill=label_percent(contlabel))) +
+    scale_fill_viridis_d() + coord_sf(xlim=xlim, ylim=ylim)}
 }
 
 \keyword{smooth}

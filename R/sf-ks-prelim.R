@@ -77,6 +77,7 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
         {
             y <- st_get_contour(x, cont=cont, breaks=abs_cont, which_deriv_ind=which_deriv_ind) 
             y <- y[y$deriv_ind == which_deriv_ind,]
+            y$estimate <- droplevels(y$estimate)
             yd <- dplyr::select(y, dplyr::all_of("estimate")) 
         }
         else
@@ -111,11 +112,9 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
     
         forms <- list(...)
         forms <- forms[names(forms) %in% names(formals(mapsf::mf_legend_t))]
+        forms <- forms[!(names(forms) %in% "border")]
         gu <- guides_ks(dplyr::add_row(dplyr::ungroup(x$tidy_ks), ks=list(2L)))
-        gu.title <- gu$fill$title
-        mflt <- mapsf::mf_legend_t
-        mfls <- mapsf::mf_legend_s
-        mflc <- mapsf::mf_legend_c
+        gu.title <- gu$guides$fill$params$title
 
         if (!(oc %in% "kda"))
         {
@@ -129,16 +128,14 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
             if (oc %in% "kda")
             {
                 gv <- levels(dplyr::pull(sf::st_drop_geometry(y), .data$label))
-                do.call("mflt", args=c(list(val=gv, pal=pal(length(gv)), pos=pos, title=gu.title), forms))
+                do.call(mapsf::mf_legend, args=c(list(type="typo", val=gv, pal=pal(length(gv)), pos=pos, title=gu.title), forms))
             }
             else
             {
                 y2 <- st_get_contour(x, cont=cont, breaks=abs_cont)
                 yd2 <- dplyr::select(y2, dplyr::all_of("estimate"))
                 gv <- yd2$estimate
-
-                do.call("mflc", args=c(list(val=gv, pal=pal(length(gv)), pos=pos, title=gu.title), forms))
-
+                do.call(mapsf::mf_legend, args=c(list(type="choro", val=gv, pal=pal(length(gv)), pos=pos, title=gu.title), forms))
             }
         }
         else if (!is.null(forms$border)) 
@@ -147,23 +144,29 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
             {
                 gv <- levels(dplyr::pull(sf::st_drop_geometry(y), dplyr::all_of(dplyr::group_vars(y))))
                 ng <- length(gv)
-                do.call("mfls", args=c(list(val=gv, pal=unique(forms$border), pos=pos, title=gu.title, pt_cex=rep(3,ng), pt_pch=rep("-", ng)), forms))
+                do.call(mapsf::mf_legend, args=c(list(type="symb", val=gv, pal=unique(forms$border), pos=pos, title=gu.title, cex=rep(3,ng), pch=rep("-", ng)), forms))
             }
             else 
             {
-                if (!all(is.na(forms$border)) & pal.missing) do.call("mfls", args=c(list(val=contlabel, pal=rev(forms$border), pos=pos, title=gu.title, pt_cex=rep(3,nc), pt_pch=rep("-", nc)), forms)) 
-                else do.call("mflt", args=c(list(val=contlabel, pal=rev(pal(nc)), pos=pos, title=gu.title), forms)) 
+                if (!all(is.na(forms$border)) & pal.missing) do.call(mapsf::mf_legend, args=c(list(type="symb", val=contlabel, pal=rev(forms$border), pos=pos, title=gu.title, cex=3, pch="-"), forms))
+                else do.call(mapsf::mf_legend,, args=c(list(type="typo", val=contlabel, pal=rev(pal(nc)), pos=pos, title=gu.title), forms)) 
             }
         }
         else if (!missing(col))
         {
-            if (oc %in% "kdr") do.call("mfls", args=c(list(val="Density ridge", pal=col,  pos=pos, title=gu.title, pt_cex=3, pt_pch="-"), forms))
-            else if (oc %in% "kfs") do.call("mflt", args=c(list(val="Signif curv", pos=pos, pal=col, title=gu.title), forms))
-            else if (oc %in% "ksupp") do.call("mfls", args=c(list(val="Support\nconvex hull", pos=pos, pal=col, title=gu.title), forms))
+            if (oc %in% "kdr") do.call(mapsf::mf_legend, args=c(list(type="symb", val="Density ridge", pal=col,  pos=pos, title=gu.title, cex=3, pch="-"), forms))
+            else if (oc %in% "kfs") do.call(mapsf::mf_legend, args=c(list(type="typo", val="Signif curv", pos=pos, pal=col, title=gu.title), forms))
+            else if (oc %in% "ksupp") do.call(mapsf::mf_legend, args=c(list(type="symb", val="Support\nconvex hull", pos=pos, pal=col, title=gu.title), forms))
+            else if (oc %in% "kda")
+            {
+                gv <- levels(dplyr::pull(sf::st_drop_geometry(y), dplyr::all_of(dplyr::group_vars(y))))
+                ng <- length(gv)
+                do.call(mapsf::mf_legend, args=c(list(type="typo", val=gv, pal=pal(ng), pos=pos, title=gu.title), forms))
+            }
             else 
             {
                 if (!missing(breaks)) { col <- rev(col) }
-                do.call("mflt", args=c(list(val=contlabel, pal=col, pos=pos, title=gu.title), forms))
+                do.call(mapsf::mf_legend, args=c(list(type="typo", val=contlabel, pal=col, pos=pos, title=gu.title), forms))
             }
         }
         else if (!missing(pal)) 
@@ -174,16 +177,16 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
                 nc <- length(gv)
                 formsg <- list(...)
                 if (is.null(formsg$pch)) pch <- 1 else pch <- unique(formsg$pch) 
-                do.call("mfls", args=c(list(val=gv, pal=pal(nc), pos=pos, title=gu.title, pt_cex=rep(1,nc), pt_pch=rep(pch,nc)), forms))
+                do.call(mapsf::mf_legend, args=c(list(type="symb", val=gv, pal=pal(nc), pos=pos, title=gu.title, cex=rep(1,nc), pch=pch), forms))
             }
             else if (oc %in% "kde.loctest")
             {
                 gv <- levels(dplyr::pull(sf::st_drop_geometry(y), .data$label))
                 ind <- order(gv, decreasing=TRUE)
-                do.call("mflt", args=c(list(val=gv[ind], pal=pal(length(gv))[ind], pos=pos, title=gu.title), forms))
+                do.call(mapsf::mf_legend, args=c(list(type="typo", val=gv[ind], pal=pal(length(gv))[ind], pos=pos, title=gu.title), forms))
             }
             else 
-                do.call("mflt", args=c(list(val=contlabel, pal=rev(pal(nc)), pos=pos, title=gu.title), forms))
+                do.call(mapsf::mf_legend, args=c(list(type="typo", val=contlabel, pal=rev(pal(nc)), pos=pos, title=gu.title), forms))
         }
     }
 }
@@ -203,12 +206,17 @@ st_get_contour <- function(x, cont=c(25,50,75), breaks, which_deriv_ind, disjoin
     {
         xc <- dplyr::filter(x$sf, .data$contlabel %in% cont)
     }
-    else if (oc %in% "kdde")
+    else if (oc %in% "kdr")
     {
         xc <- dplyr::filter(x$sf, .data$contlabel %in% cont)
-        xc <- dplyr::arrange(xc, .data$deriv_group, .data$estimate)
-        if (!missing(which_deriv_ind)) xc <- dplyr::filter(xc, .data$deriv_ind %in% which_deriv_ind)
-    
+        disjoint <- FALSE
+    }
+    else if (oc %in% "ksupp")
+    {
+        xc <- x$sf
+    }
+    else if (oc %in% "kdde")
+    {
         ## absolute contour levels 
         if (!missing(breaks))
         {
@@ -217,12 +225,30 @@ st_get_contour <- function(x, cont=c(25,50,75), breaks, which_deriv_ind, disjoin
             xc <- dplyr::arrange(xc, .data$deriv_group, .data$contlabel)
             xc <- sf::st_as_sf(xc)
         }
+        ## add non-integer contour levels
+        else
+        {
+            xc <- dplyr::filter(x$sf, .data$contlabel %in% cont)
+            xc <- dplyr::arrange(xc, .data$deriv_group, .data$estimate)
+            cont2 <- cont[!(cont %in% x$sf$contlabel)]
+            cont2 <- cont2[cont2>0 & cont2<100]
+            cont2 <- cont2[round(cont2,0)!=cont2]
+            if (length(cont2)>0)
+            {   
+                cont.geom <- dplyr::group_modify(.data=fhat, .f=~dplyr::tibble(geometry=list(st_contourline_kdde(x=untidy_ks(.x), which_deriv_ind=.x$deriv_ind, cont=cont2)), deriv_ind=.x$deriv_ind))
+                cont.geom <- lapply(cont.geom$deriv_ind, function(.) cbind(dplyr::select(cont.geom[.,], -"geometry"), cont.geom$geometry[[.]]))
+                cont.geom <- do.call(rbind, cont.geom)
+                cont.geom <- sf::st_sf(cont.geom, crs=sf::st_crs(x$sf))
+                xc <- rbind(xc, cont.geom)
+            }
+        }
+        if (!missing(which_deriv_ind)) xc <- dplyr::filter(xc, .data$deriv_ind %in% which_deriv_ind)
+        xc <- dplyr::mutate(xc, pos=sign(.data$estimate), .before="geometry")
+        xc <- dplyr::arrange(xc, .data$deriv_ind, .data$contlabel)
+        xc <- dplyr::group_by(xc, .data$deriv_group, .data$pos)
+        xc <- dplyr::group_modify(xc, .f=~dplyr::arrange(.x, .data$estimate))
+        xc <- sf::st_as_sf(xc)
     } 
-    else if (oc %in% "kdr")
-    {
-        xc <- dplyr::filter(x$sf, .data$contlabel %in% cont)
-        disjoint <- FALSE
-    }
     else 
     {
         ## absolute contour levels 
@@ -252,19 +278,19 @@ st_get_contour <- function(x, cont=c(25,50,75), breaks, which_deriv_ind, disjoin
             }
         }
     }
-   
+
     if (disjoint & !as_point) xc <- st_contour_disjoint(xc) 
     gv <- dplyr::group_vars(xc)
     xc <- dplyr::relocate(xc, dplyr::all_of(gv), .before="geometry")
     xc <- sf::st_sf(xc, crs=sf::st_crs(x$sf))
- 
+    
     if (!(oc %in% "kms"))
     {
+        xc$contlabel <- factor(droplevels(xc$contlabel), levels=unique(xc$contlabel))
         xc$estimate <- signif(xc$estimate, 3)
-        xc$estimate <- factor(xc$estimate)#, levels=unique(xc$estimate))
-        xc$contlabel <- factor(xc$contlabel)#, levels=unique(xc$contlabel))        
+        xc$estimate <- factor(xc$estimate) 
     }
-    
+     
     ## if original data is not tibble
     if (!inherits(x$sf, "tbl_df"))  xc <- sf::st_sf(data.frame(xc))
 
@@ -280,6 +306,12 @@ st_get_contour <- function(x, cont=c(25,50,75), breaks, which_deriv_ind, disjoin
         xc$contlabel_group <- factor(dplyr::group_indices(dplyr::group_by(xc, .data$contlabel, .data$contlabel_group)))
     }
 
+    if (oc %in% "kdde")
+    {
+        xc <- dplyr::group_by(xc, .data$deriv_group)
+        xc <- dplyr::select(xc, -"pos")
+    }
+     
     return(xc)
 }
 
@@ -302,10 +334,11 @@ st_contour_disjoint <- function(x)
     {
         cp <- x
         cp <- dplyr::mutate(cp, estimate=as.numeric(as.character(.data$estimate)), contlabel=as.numeric(as.character(.data$contlabel)))
-        
+        if (is.null(cp$deriv_ind)) cp <- dplyr::arrange(cp, .data$estimate) 
+        else cp <- dplyr::arrange(cp, .data$deriv_ind, .data$estimate)
+
         cp1 <- dplyr::filter(cp, .data$contlabel<0)
         cp1 <- sf::st_geometry(cp1)
-        #cp1 <- mapply(FUN=sf::st_difference, tail(cp1, n=-1), head(cp1, n=-1))
         cp1 <- st_difference_sequence(cp1, headtail=FALSE)
         cp1 <- sf::st_sfc(cp1)
         cp1 <- c(head(sf::st_geometry(dplyr::filter(cp, .data$contlabel<0)),n=1),cp1)

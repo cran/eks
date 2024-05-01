@@ -33,7 +33,8 @@ st_kde_sp(x, ...)
 
 \examples{
 ## tidy variable density estimates
-\donttest{data(worldbank, package="ks")
+\donttest{library(ggplot2)
+data(worldbank, package="ks")
 worldbank <- dplyr::as_tibble(worldbank)
 wb2 <- na.omit(worldbank[,c("GDP.growth", "inflation")])
 xmin <- c(-70,-25); xmax <- c(25,70)
@@ -46,10 +47,9 @@ tt <- c(t1, t2, labels=c("Standard KDE","Sample point KDE"))
 
 ## fixed contour levels for all three plots
 b <- contour_breaks(tt)
-gt <- ggplot2::ggplot(tt, ggplot2::aes(x=GDP.growth, y=inflation)) 
+gt <- ggplot(tt, aes(x=GDP.growth, y=inflation)) 
 gt + geom_contour_filled_ks(breaks=b, colour=1) + 
-    colorspace::scale_fill_discrete_sequential() +
-    ggplot2::facet_wrap(~group)
+    colorspace::scale_fill_discrete_sequential() + facet_wrap(~group)
 
 ## balloon variable density estimate
 ## gridsize=c(21,21) only for illustrative purposes
@@ -57,8 +57,7 @@ t3 <- tidy_kde_balloon(wb2, xmin=xmin, xmax=xmax, gridsize=c(21,21))
 tt <- c(t1, t2, t3, labels=c("Standard KDE","Sample point KDE","Balloon KDE"))
 b <- contour_breaks(tt, cont=seq(10,90,by=10))
 gt + geom_contour_filled_ks(data=tt, breaks=b, colour=1) + 
-    colorspace::scale_fill_discrete_sequential() +
-    ggplot2::facet_wrap(~group)
+    colorspace::scale_fill_discrete_sequential() + facet_wrap(~group)
 
 ## geospatial variable density estimates
 data(wa)
@@ -81,13 +80,10 @@ plot(wa, xlim=xlim, ylim=ylim)
 plot(s2, add=TRUE, col=bcols, breaks=b)
 
 ## geom_sf plot
-gs <- ggplot2::ggplot(s3) + ggplot2::geom_sf(data=wa, fill=NA) + 
-    ggthemes::theme_map()
-gs + ggplot2::geom_sf(data=st_get_contour(s3, breaks=b),  
-    ggplot2::aes(fill=contlabel)) + 
+gs <- ggplot(s3) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map()
+gs + geom_sf(data=st_get_contour(s3, breaks=b), aes(fill=contlabel)) + 
     colorspace::scale_fill_discrete_sequential(palette="Heat2") +
-    ggplot2::coord_sf(xlim=xlim, ylim=ylim) +
-    ggplot2::facet_wrap(~group)}
+    coord_sf(xlim=xlim, ylim=ylim) + facet_wrap(~group)}
 }
 
 \keyword{smooth}

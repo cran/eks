@@ -45,26 +45,29 @@ st_get_contour(x, cont=c(25,50,75), breaks, which_deriv_ind, disjoint=TRUE,
 \seealso{\code{\link{geom_contour_ks}}}
 
 \examples{
+library(ggplot2)
 data(crabs, package="MASS")
 crabs2 <- dplyr::select(crabs, FL, CW, sex)
 crabs2 <- dplyr::group_by(crabs2, sex)
 t1 <- tidy_kde(crabs2)
 b <- contour_breaks(t1)
-ggplot2::ggplot(t1, ggplot2::aes(x=FL, y=CW)) + 
-    geom_contour_filled_ks(colour=1, breaks=b) + 
-    ggplot2::facet_wrap(~sex)
+ggplot(t1, aes(x=FL, y=CW)) + 
+    geom_contour_filled_ks(colour=1, breaks=b) + facet_wrap(~sex)
+
+crabs3 <- dplyr::select(crabs, FL, CW)
+t2 <- tidy_kde(crabs3)
+ggplot(t2, aes(x=FL, y=CW)) + 
+    geom_contour_filled_ks(colour=1, cont=c(50,75,97.5))
 
 ## extract contour polygons
 \donttest{crabs2s <- sf::st_as_sf(crabs2, coords=c("FL","CW"))
 t2 <- st_kde(crabs2s)
 t2 <- st_get_contour(t2, breaks=b, as_point=TRUE)
 t2 <- dplyr::rename(t2, FL=X, CW=Y)
-ggplot2::ggplot(t2, ggplot2::aes(x=FL, y=CW)) + 
-    ggplot2::geom_polygon(ggplot2::aes(fill=contlabel, 
-    subgroup=contlabel_group), col=1) + 
-    ggplot2::scale_fill_viridis_d() + 
-    ggplot2::guides(fill=ggplot2::guide_legend(reverse=TRUE)) + 
-    ggplot2::facet_wrap(~sex)} 
+ggplot(t2, aes(x=FL, y=CW)) + 
+    geom_polygon(aes(fill=contlabel, subgroup=contlabel_group), col=1) + 
+    scale_fill_viridis_d() + guides(fill=guide_legend(reverse=TRUE)) + 
+    facet_wrap(~sex)} 
 }
 
 \keyword{smooth}

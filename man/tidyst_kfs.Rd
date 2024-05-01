@@ -32,15 +32,16 @@ st_kfs(x, ...)
 
 \examples{
 \donttest{## tidy significant curvature regions
+library(ggplot2)
 data(hsct, package="ks")
 hsct <- dplyr::as_tibble(hsct)
 hsct <- dplyr::filter(hsct, PE.Ly65Mac1>0 & APC.CD45.2>0)
 hsct12 <- dplyr::filter(hsct, subject==12)   
 hsct12 <- dplyr::select(hsct12, PE.Ly65Mac1, APC.CD45.2)
 t1 <- tidy_kfs(hsct12)
-gt <- ggplot2::ggplot(t1, ggplot2::aes(x=PE.Ly65Mac1, y=APC.CD45.2)) 
-gt + geom_contour_filled_ks(ggplot2::aes(colour=label), colour=1) +
-    ggplot2::scale_fill_manual(values=7) 
+gt <- ggplot(t1, aes(x=PE.Ly65Mac1, y=APC.CD45.2)) 
+gt + geom_contour_filled_ks(aes(colour=label), colour=1) +
+    scale_fill_manual(values=7) 
 
 ## geospatial significant curvature regions
 data(wa)
@@ -54,11 +55,9 @@ plot(wa, xlim=xlim, ylim=ylim)
 plot(s1, add=TRUE)
 
 ## geom_sf plot
-gs <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA) + 
-    ggthemes::theme_map() 
-gs + ggplot2::geom_sf(data=st_get_contour(s1, cont=50), ggplot2::aes(fill=label)) +
-    ggplot2::scale_fill_manual(values=7) +
-    ggplot2::coord_sf(xlim=xlim, ylim=ylim)}
+gs <- ggplot(s1) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map() 
+gs + geom_sf(data=st_get_contour(s1, cont=50), aes(fill=label)) +
+    scale_fill_manual(values=7) + coord_sf(xlim=xlim, ylim=ylim)}
 }
 
 \keyword{smooth}

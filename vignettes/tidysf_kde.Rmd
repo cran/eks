@@ -125,8 +125,7 @@ plot(st_geometry(wa), xlim=xlim, ylim=ylim)
 plot(st_geometry(eryngioides), add=TRUE, col=3, pch=16, cex=0.5)
 plot(st_geometry(paradoxa), add=TRUE, col=6, pch=17, cex=0.5)
 mapsf::mf_legend(type="symb", val=c("Grevillea eryngioides", "Grevillea paradoxa"), 
-   pal=c(3,6), pt_pch=16:17, pt_cex=c(1,1), title="Species", 
-   pos="topright")
+   pal=c(3,6), pch=16:17, cex=c(1,1), title="Species", pos="topright")
 mapsf::mf_scale(size=200, lwd=4)
 ## geom_sf scatter plot 
 gsc <- ggspatial::annotation_scale(data=data.frame(name="Grevillea paradoxa"), 

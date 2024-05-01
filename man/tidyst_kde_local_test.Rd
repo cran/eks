@@ -35,6 +35,7 @@ st_kde_local_test(x1, x2, labels, ...)
 
 \examples{
 ## tidy local test between unsuccessful and successful grafts
+library(ggplot2)
 data(hsct, package="ks")
 hsct <- dplyr::as_tibble(hsct)
 hsct <- dplyr::filter(hsct, PE.Ly65Mac1 >0 & APC.CD45.2>0)
@@ -43,7 +44,7 @@ hsct6 <- dplyr::select(hsct6, PE.Ly65Mac1, APC.CD45.2)
 hsct12 <- dplyr::filter(hsct, subject==12) ## successful graft 
 hsct12 <- dplyr::select(hsct12, PE.Ly65Mac1, APC.CD45.2)
 t1 <- tidy_kde_local_test(data1=hsct6, data2=hsct12)
-gt <- ggplot2::ggplot(t1, ggplot2::aes(x=PE.Ly65Mac1, y=APC.CD45.2)) 
+gt <- ggplot(t1, aes(x=PE.Ly65Mac1, y=APC.CD45.2)) 
 gt + geom_contour_filled_ks() + 
     scale_transparent(colorspace::scale_fill_discrete_qualitative(
         palette="Dark2", rev=TRUE, breaks=c("hsct6<hsct12","hsct6>hsct12"), order=c(2,1,3)))
@@ -61,11 +62,10 @@ plot(wa, xlim=xlim, ylim=ylim)
 plot(s1, add=TRUE)
 
 ## geom_sf plot
-gs <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA)  + 
-    ggthemes::theme_map() 
-gs + ggplot2::geom_sf(data=st_get_contour(s1), ggplot2::aes(fill=label)) +
+gs <- ggplot(s1) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map() 
+gs + geom_sf(data=st_get_contour(s1), aes(fill=label)) +
     colorspace::scale_fill_discrete_qualitative(palette="Dark2", rev=TRUE) +
-    ggplot2::coord_sf(xlim=xlim, ylim=ylim)} 
+    coord_sf(xlim=xlim, ylim=ylim)} 
 }
 
 \keyword{smooth}

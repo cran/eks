@@ -1,5 +1,13 @@
 Change log file for eks
 
+1.0.5
+-Changed legends in plot_sf_ks to remove calls to deprecated functions from 
+ mapsf.
+-Added droplevels(y$estimate) in plot.sf_ks, and fixed other bugs in 
+ st_get_contour, for "kdde" class. 
+-Fixed bug in st_ksupp that didn't pass cont parameter.
+-Removed ggplot2:: calls in examples.
+
 1.0.4
 -Fixed bug in legend display in plot.sf_ks for "kms" class. 
 -Remove alpha transparency values in displays in vignette.  

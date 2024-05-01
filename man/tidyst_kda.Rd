@@ -45,6 +45,7 @@ st_kda(x, ...)
 
 \examples{
 ## tidy discriminant analysis (classification)
+library(ggplot2)
 data(cardio, package="ks")
 cardio <- dplyr::as_tibble(cardio[,c("ASTV","Mean","NSP")])
 cardio <- dplyr::mutate(cardio, NSP=ordered(NSP))
@@ -57,18 +58,18 @@ cardio.train2 <- dplyr::select(cardio.train, ASTV, Mean, NSP)
 
 ## tidy 1-d classification
 t1 <- tidy_kda(cardio.train1) 
-gt1 <- ggplot2::ggplot(t1, ggplot2::aes(x=ASTV)) 
-gt1 + ggplot2::geom_line(ggplot2::aes(colour=NSP)) + 
-    ggplot2::geom_rug(ggplot2::aes(colour=label), sides="b", linewidth=1.5) +
-    ggplot2::scale_colour_brewer(palette="Dark2", na.translate=FALSE) 
+gt1 <- ggplot(t1, aes(x=ASTV)) 
+gt1 + geom_line(aes(colour=NSP)) + 
+    geom_rug(aes(colour=label), sides="b", linewidth=1.5) +
+    scale_colour_brewer(palette="Dark2", na.translate=FALSE) 
 
 \donttest{## tidy 2-d classification
 t2 <- tidy_kda(cardio.train2)
-gt2 <- ggplot2::ggplot(t2, ggplot2::aes(x=ASTV, y=Mean)) 
-gt2 + geom_contour_ks(ggplot2::aes(colour=NSP)) + 
-    ggplot2::geom_tile(ggplot2::aes(fill=label), alpha=0.2) +
-    ggplot2::scale_fill_brewer(palette="Dark2", na.translate=FALSE) +
-    ggplot2::scale_colour_brewer(palette="Dark2") + ggplot2::theme_bw()}
+gt2 <- ggplot(t2, aes(x=ASTV, y=Mean)) + theme_bw()
+gt2 + geom_contour_ks(aes(colour=NSP)) + 
+    geom_tile(aes(fill=label), alpha=0.2) +
+    scale_fill_brewer(palette="Dark2", na.translate=FALSE) +
+    scale_colour_brewer(palette="Dark2")}
 
 ## geospatial classification
 \donttest{data(wa)
@@ -79,8 +80,7 @@ grevillea_gr <- dplyr::mutate(grevillea_gr, species=factor(species))
 grevillea_gr <- dplyr::group_by(grevillea_gr, species)
 s1 <- st_kda(grevillea_gr)
 s2 <- st_ksupp(st_kde(grevillea_gr))
-s1$grid <- s1$grid[sf::st_intersects(s1$grid, 
-    sf::st_convex_hull(sf::st_union(s2$sf)), sparse=FALSE),]
+s1$grid <- sf::st_filter(s1$grid, sf::st_convex_hull(sf::st_union(s2$sf)))
 
 ## base R plot
 xlim <- c(1.2e5, 1.1e6); ylim <- c(6.1e6, 7.2e6)
@@ -90,16 +90,13 @@ plot(s1, add=TRUE, lwd=2, border=rep(colorspace::qualitative_hcl(
     palette="Dark2", n=2, alpha=0.5), each=3))
 
 ## geom_sf plot
-gs1 <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA) + 
-    ggplot2::geom_sf(data=dplyr::mutate(s1$grid, species=label), 
-    ggplot2::aes(fill=species), alpha=0.1, colour=NA) + 
-    ggthemes::theme_map()
-gs1 + ggplot2::geom_sf(data=st_get_contour(s1), 
-    ggplot2::aes(colour=species), fill=NA) +
+gs1 <- ggplot(s1) + geom_sf(data=wa, fill=NA) + 
+    geom_sf(data=dplyr::mutate(s1$grid, species=label), aes(fill=species), 
+    alpha=0.1, colour=NA) + ggthemes::theme_map()
+gs1 + geom_sf(data=st_get_contour(s1), aes(colour=species), fill=NA) +
     colorspace::scale_colour_discrete_qualitative(palette="Dark2") +
     colorspace::scale_fill_discrete_qualitative(palette="Dark2") +
-    ggplot2::facet_wrap(~species) +
-    ggplot2::coord_sf(xlim=xlim, ylim=ylim)}
+    facet_wrap(~species) + coord_sf(xlim=xlim, ylim=ylim)}
 }
 
 \keyword{smooth}

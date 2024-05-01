@@ -35,15 +35,16 @@ st_kquiver(x, thin=5, transf=1/4, neg.grad=FALSE, scale=1)
 
 \examples{
 ## tidy kernel quiver estimate
-\donttest{data(crabs, package="MASS")
+\donttest{library(ggplot2)
+data(crabs, package="MASS")
 crabs2 <- dplyr::select(crabs, FL, CW)
 t1 <- tidy_kde(crabs2)
 t2 <- tidy_kdde(crabs2, deriv_order=1)
 t3 <- tidy_kquiver(t2, thin=5) 
-gt <- ggplot2::ggplot(t1, ggplot2::aes(x=FL, y=CW)) 
-gt + geom_contour_filled_ks(colour=1, cont=seq(10,90,by=10)) +
+gt <- ggplot(t1, aes(x=FL, y=CW)) 
+gt + geom_contour_filled_ks(colour="grey50", cont=seq(10,90,by=10)) +
     colorspace::scale_fill_discrete_sequential(alpha=0.5) + 
-    ggquiver::geom_quiver(data=t3, ggplot2::aes(u=u, v=v), colour=6)
+    ggquiver::geom_quiver(data=t3, aes(u=u, v=v), colour=6)
 
 ## geospatial kernel `quiver' estimate
 data(wa)
@@ -57,20 +58,17 @@ s3 <- st_kquiver(s2, thin=9)
 ## base R plot
 xlim <- c(1.2e5, 1.1e6); ylim <- c(6.1e6, 7.2e6)
 plot(wa, xlim=xlim, ylim=ylim)
-plot(s1, add=TRUE, alpha=0.5)
+plot(s1, add=TRUE, alpha=0.5, border="grey50")
 plot(s3$tidy_ks$ks[[1]], add=TRUE, display="quiver")
 
 ## geom_sf plot - ggquiver::geom_quiver not compatible with ggplot2::geom_sf layers
 ## use instead geom_segment 
-gs <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA)  +
-    ggthemes::theme_map()
-gs + ggplot2::geom_sf(data=st_get_contour(s1),
-    ggplot2::aes(fill=label_percent(contlabel)), alpha=0.5) + 
-    ggplot2::coord_sf(xlim=xlim, ylim=ylim) + 
-    ggplot2::geom_segment(data=s3$sf, 
-    ggplot2::aes(x=lon, xend=lon_end, y=lat, yend=lat_end), 
+gs <- ggplot(s1) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map()
+gs + geom_sf(data=st_get_contour(s1), aes(fill=label_percent(contlabel)), alpha=0.5) +
+    geom_segment(data=s3$sf, aes(x=lon, xend=lon_end, y=lat, yend=lat_end), 
     arrow=grid::arrow(length=0.05*s3$sf$len)) + 
-    colorspace::scale_fill_discrete_sequential("Heat2")}
+    colorspace::scale_fill_discrete_sequential("Heat2") + 
+    coord_sf(xlim=xlim, ylim=ylim)}
 }
 
 \keyword{smooth}

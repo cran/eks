@@ -29,7 +29,8 @@ st_kms(x, ...)
 }
 
 \examples{
-## tidy 2-d mean shift clustering  
+## tidy 2-d mean shift clustering 
+library(ggplot2) 
 data(crabs, package="MASS")
 crabs2 <- dplyr::select(crabs, FL, CW)
 t1 <- tidy_kms(crabs2)
@@ -37,9 +38,9 @@ t1 <- tidy_kms(crabs2)
 t2 <- dplyr::group_by(t1, estimate)
 t2 <- dplyr::slice(t2, chull(FL,CW))
 
-gt <- ggplot2::ggplot(t1, ggplot2::aes(x=FL, y=CW)) 
-gt + ggplot2::geom_point(ggplot2::aes(colour=estimate)) +
-    ggplot2::geom_polygon(data=t2, ggplot2::aes(fill=estimate), alpha=0.1)
+gt <- ggplot(t1, aes(x=FL, y=CW)) 
+gt + geom_point(aes(colour=estimate)) +
+    geom_polygon(data=t2, aes(fill=estimate), alpha=0.1)
 
 ## geospatial mean shift clustering 
 data(wa)
@@ -60,14 +61,12 @@ plot(s2, add=TRUE, lty=3, pal=function(.){
     colorspace::qualitative_hcl(n=., palette="Set2", alpha=0.15)})
 
 ## geom_sf plot
-gs <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA)  + 
-    ggthemes::theme_map()
-gs + ggplot2::geom_sf(data=s1$sf, ggplot2::aes(colour=estimate), alpha=0.5) + 
-    ggplot2::geom_sf(data=s2, ggplot2::aes(fill=estimate), linetype="dotted", 
-    alpha=0.15) + 
+gs <- ggplot(s1) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map()
+gs + geom_sf(data=s1$sf, aes(colour=estimate), alpha=0.5) + 
+    geom_sf(data=s2, aes(fill=estimate), linetype="dotted", alpha=0.15) + 
     colorspace::scale_colour_discrete_qualitative(palette="Set2") +
     colorspace::scale_fill_discrete_qualitative(palette="Set2") +
-    ggplot2::coord_sf(xlim=xlim, ylim=ylim) 
+    coord_sf(xlim=xlim, ylim=ylim) 
 }
 
 \keyword{smooth}

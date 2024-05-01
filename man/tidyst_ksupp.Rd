@@ -32,19 +32,20 @@ st_ksupp(x, cont=95, convex_hull=TRUE, ...)
 
 \examples{
 ## tidy density support estimate
+library(ggplot2)
 data(crabs, package="MASS")
 crabs2 <- dplyr::select(crabs, FL, CW)
 t1 <- tidy_kde(crabs2)
 t2 <- tidy_ksupp(t1)
-gt <- ggplot2::ggplot(t1, ggplot2::aes(x=FL, y=CW)) 
-gt + geom_contour_filled_ks(cont=c(25,50,75,95), colour=1) +
-    ggplot2::geom_polygon(data=t2, ggplot2::aes(linetype=label), fill=NA, colour=1,
-    linewidth=1.2) + colorspace::scale_fill_discrete_sequential() +
-    ggplot2::scale_linetype_manual(values="dashed", name="Support\nconvex hull")
+ggplot(t1, aes(x=FL, y=CW)) + 
+    geom_contour_filled_ks(cont=c(25,50,75,95), colour="grey50") +
+    geom_polygon(data=t2, aes(linetype=label), fill=NA, colour=1) +
+    colorspace::scale_fill_discrete_sequential() +
+    scale_linetype_manual(values="dashed", name="Support\nconvex hull")
 
-gt + ggplot2::geom_polygon(data=t2, ggplot2::aes(colour=label), fill=NA,
-    linetype="dashed") + geom_point_ks(data=t1, colour=3) +
-    ggplot2::scale_colour_manual(values=1)
+ggplot(t2, aes(x=FL, y=CW)) + 
+    geom_polygon(data=t2, aes(colour=label), fill=NA, linetype="dashed") +
+    geom_point_ks(data=t1, colour=3) + scale_colour_manual(values=1)
 
 ## geospatial density support estimate
 \donttest{data(wa)
@@ -52,27 +53,31 @@ data(grevilleasf)
 hakeoides <- dplyr::filter(grevilleasf, species=="hakeoides")
 s1 <- st_kde(hakeoides)
 s2 <- st_ksupp(s1)
+s3 <- st_ksupp(s1, cont=97.5)
 
 ## base R plot
 xlim <- c(1.2e5, 1.1e6); ylim <- c(6.1e6, 7.2e6)
 plot(wa, xlim=xlim, ylim=ylim)
-plot(s1, cont=c(25,50,75,95), add=TRUE)
+plot(s1, cont=c(25,50,75,95,97.5), add=TRUE, border="grey50")
 plot(sf::st_geometry(hakeoides), add=TRUE, pch=16, col=1)
 plot(s2, add=TRUE, lty=2, lwd=2)
+plot(s3, add=TRUE, lty=3, lwd=2)
 
 ## geom_sf plot
-gs1 <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA)  + 
-    ggthemes::theme_map()
-gs1 + ggplot2::geom_sf(data=st_get_contour(s1, cont=c(25,50,75,95)),
-    ggplot2::aes(fill=label_percent(contlabel))) +
-    ggplot2::geom_sf(data=st_get_contour(s2,cont=95), 
-    ggplot2::aes(linetype=contlabel), fill=NA, colour=1) + 
-    ggplot2::geom_sf(data=hakeoides, ggplot2::aes(colour=species)) +
+gs1 <- ggplot(s1) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map()
+gs1 + geom_sf(data=st_get_contour(s1, cont=c(25,50,75,95,97.5)),
+    aes(fill=label_percent(contlabel)), col="grey50") +
+    geom_sf(data=st_get_contour(s2), 
+    aes(linetype=contlabel), fill=NA, colour=1) + 
+    geom_sf(data=st_get_contour(s3), 
+    aes(linetype=contlabel), fill=NA, colour=1) + 
+    geom_sf(data=hakeoides, aes(colour=species)) +
     colorspace::scale_fill_discrete_sequential(palette="Heat2") +
-    ggplot2::scale_colour_manual(values=1) + 
-    ggplot2::guides(colour=ggplot2::guide_legend(title="Locations")) +
-    ggplot2::scale_linetype_manual(values="dashed", name="Support\nconvex hull") +
-    ggplot2::coord_sf(xlim=xlim, ylim=ylim)}
+    scale_colour_manual(values=c(1,1)) + 
+    guides(colour=guide_legend(title="Locations")) +
+    scale_linetype_manual(values=c("dashed","dotted"), 
+    name="Support\nconvex hull") +
+    coord_sf(xlim=xlim, ylim=ylim)}
 }
 
 \keyword{smooth}

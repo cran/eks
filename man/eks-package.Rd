@@ -1,5 +1,6 @@
 \name{eks-package}
 \alias{eks}
+\alias{eks-package}
 \docType{package}
 \title{eks}
 

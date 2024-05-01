@@ -92,17 +92,17 @@ the default plot specification, e.g. \code{borders()}.}
 }
 
 \examples{
+library(ggplot2)
 data(crabs, package="MASS")
 crabs2 <- dplyr::select(crabs, FL, CW, sp)
 crabs2 <- dplyr::group_by(crabs2, sp)
 tt <- tidy_kde(crabs2)
-gt <- ggplot2::ggplot(tt, ggplot2::aes(x=FL, y=CW))
-gt + geom_contour_ks() + ggplot2::facet_wrap(~sp)
-gt + ggplot2::geom_contour(stat="contour_ks") +
-    ggplot2::facet_wrap(~sp) ## same output
-gt + geom_contour_filled_ks(colour=1) + ggplot2::facet_wrap(~sp)
-gt + ggplot2::geom_contour_filled(stat="contour_filled_ks", colour=1) +
-    ggplot2::facet_wrap(~sp) ## same output
+gt <- ggplot(tt, aes(x=FL, y=CW))
+gt + geom_contour_ks() + facet_wrap(~sp)
+gt + geom_contour(stat="contour_ks") + facet_wrap(~sp) ## same output
+gt + geom_contour_filled_ks(colour=1) + facet_wrap(~sp)
+gt + geom_contour_filled(stat="contour_filled_ks", colour=1) +
+    facet_wrap(~sp) ## same output
 }
 
 \seealso{\code{\link{contour_breaks}}}

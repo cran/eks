@@ -111,7 +111,7 @@ guides_ks <- function(object, kda_part=TRUE, colour_contour=TRUE)
         {
             if (kda_part)
             {
-                titlef <- "Classif\nlabel"; titlec <- "Density"; rev <- FALSE
+                titlef <- "Classif label"; titlec <- "Density"; rev <- FALSE
             }
             else titlef <- "Density"
         }
@@ -120,7 +120,7 @@ guides_ks <- function(object, kda_part=TRUE, colour_contour=TRUE)
         else if (oc %in% "kde.loctest") { titlef <- "Signif difference" }
         else if (oc %in% "kms") { titlef <- "Cluster"; rev <- FALSE }
         else if (oc %in% c("kdr", "kfs")) { titlef <- ""; titlec <- ""; rev <- FALSE }
-        else if (oc %in% "ksupp") titlef <- expression(atop("Support", "convex hull"))
+        else if (oc %in% "ksupp") titlef <- "Support\nconvex hull" ##expression(atop("Support", "convex hull"))
         if (colour_contour) titlec <- titlef
 
         if ((titlef=="" & titlec=="") ) gu <- ggplot2::guides(fill=ggplot2::guide_legend(title=NULL, reverse=TRUE & rev), colour=ggplot2::guide_legend(title=NULL, reverse=colour_contour & rev))

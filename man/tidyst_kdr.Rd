@@ -31,6 +31,7 @@ st_kdr(x, dTolerance, ...)
 
 \examples{
 ## tidy density ridge estimate
+library(ggplot2)
 \donttest{data(cardio, package="ks")
 cardio <- dplyr::as_tibble(cardio[,c("ASTV","Mean")])
 set.seed(8192)
@@ -38,10 +39,10 @@ cardio <- cardio[sample(1:nrow(cardio), round(nrow(cardio)/4,0)),]
 ## gridsize=c(21,21) is for illustrative purposes only
 ## remove for more complete KDR
 t1 <- tidy_kdr(cardio, gridsize=c(21,21))
-gt <- ggplot2::ggplot(t1, ggplot2::aes(x=ASTV, y=Mean)) 
+gt <- ggplot(t1, aes(x=ASTV, y=Mean)) 
 gt + geom_point_ks(colour=3, alpha=0.8) + 
-    ggplot2::geom_path(ggplot2::aes(colour=label, group=segment), size=1.2, alpha=0.8) +
-    ggplot2::scale_colour_manual(values=6)}
+    geom_path(aes(colour=label, group=segment), linewidth=1.2, alpha=0.8) +
+    scale_colour_manual(values=6)}
 
 ## geospatial density ridge estimate
 data(wa)
@@ -58,12 +59,10 @@ plot(sf::st_geometry(hakeoides), add=TRUE, col=3, pch=16)
 plot(s1, add=TRUE, col=6, lwd=3, alpha=0.8)
 
 ## geom_sf plot
-gs <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA) +
-    ggthemes::theme_map()
-gs + ggplot2::geom_sf(data=hakeoides, colour=3, alpha=0.5) +
-    ggplot2::geom_sf(data=s1$sf, ggplot2::aes(colour=label), linewidth=1.2, alpha=0.8) +
-    ggplot2::scale_colour_manual(values=6) +
-    ggplot2::coord_sf(xlim=xlim, ylim=ylim) 
+gs <- ggplot(s1) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map()
+gs + geom_sf(data=hakeoides, colour=3, alpha=0.5) +
+    geom_sf(data=s1$sf, aes(colour=label), linewidth=1.2, alpha=0.8) +
+    scale_colour_manual(values=6) + coord_sf(xlim=xlim, ylim=ylim) 
 }
 
 \keyword{smooth}

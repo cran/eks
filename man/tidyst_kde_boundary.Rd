@@ -37,6 +37,7 @@ st_kde_truncate(x, boundary, ...)
 
 \examples{
 ## tidy boundary density estimates
+library(ggplot2)
 data(worldbank, package="ks")
 worldbank <- dplyr::as_tibble(worldbank)
 ## percentage data is bounded on [0,100] x [0,100]
@@ -57,11 +58,10 @@ t5 <- c(t1, t2, t3, t4, labels=c("Standard KDE","Beta bd KDE", "Linear bd KDE",
     "Truncated KDE"))
 
 ## standard estimate exceeds boundary but not boundary or truncated estimates
-gr <- ggplot2::geom_polygon(data=rectb, inherit.aes=FALSE, ggplot2::aes(x=x,y=y), 
+gr <- geom_polygon(data=rectb, inherit.aes=FALSE, aes(x=x,y=y), 
     fill=NA, colour=1, linetype="dashed")
-gt <- ggplot2::ggplot(t5, ggplot2::aes(x=internet,y=ag.value)) 
-gt + geom_contour_ks(ggplot2::aes(colour=group)) + gr + 
-    ggplot2::facet_wrap(~group)
+gt <- ggplot(t5, aes(x=internet,y=ag.value)) 
+gt + geom_contour_ks(aes(colour=group)) + gr + facet_wrap(~group)
 
 ## geospatial boundary density estimates
 \donttest{data(wa)
@@ -88,32 +88,29 @@ plot(hakeoides_bbox, add=TRUE, lty=3, lwd=2)
 plot(s1, add=TRUE, border=1, col="transparent", legend=FALSE)
 plot(s2, add=TRUE, border=2, col="transparent", legend=FALSE)
 mapsf::mf_legend(type="symb", val=c("Standard KDE","Beta bd KDE"), pal=c(1,2), 
-    pt_cex=rep(3,2), pt_pch=rep("-",2), title="Density", pos="bottomleft")
+    cex=rep(3,2), pch=rep("-",2), title="Density", pos="bottomleft")
 
 plot(wa, xlim=xlim, ylim=ylim)
 plot(hakeoides_bbox, add=TRUE, lty=3, lwd=2)
 plot(s1, add=TRUE, border=1, col="transparent", legend=FALSE)
 plot(s3, add=TRUE, border=3, col="transparent", legend=FALSE)
 mapsf::mf_legend(type="symb", val=c("Standard KDE","Linear bd KDE"), pal=c(1,3), 
-    pt_cex=rep(3,2), pt_pch=rep("-",2), title="Density", pos="bottomleft")
+    cex=rep(3,2), pch=rep("-",2), title="Density", pos="bottomleft")
 
 plot(wa, xlim=xlim, ylim=ylim)
 plot(hakeoides_bbox, add=TRUE, lty=3, lwd=2)
 plot(s1, add=TRUE, border=1, col="transparent", legend=FALSE)
 plot(s4, add=TRUE, border=4, col="transparent", legend=FALSE)
 mapsf::mf_legend(type="symb", val=c("Standard KDE","Truncated KDE"), pal=c(1,4), 
-    pt_cex=rep(3,2), pt_pch=rep("-",2), title="Density", pos="bottomleft")
+    cex=rep(3,2), pch=rep("-",2), title="Density", pos="bottomleft")
 
 ## geom_sf plots
-gs <- ggplot2::ggplot(s1) + ggplot2::geom_sf(data=wa, fill=NA) + 
-    ggplot2::geom_sf(data=hakeoides_bbox, 
-    linewidth=1.2, linetype="dotted", fill=NA) + 
-    ggplot2::geom_sf(data=dplyr::mutate(st_get_contour(s1), gr="Standard KDE"), 
-        ggplot2::aes(colour=gr), fill=NA) + 
-    ggthemes::theme_map()
-gs + ggplot2::geom_sf(data=st_get_contour(s5), ggplot2::aes(colour=group), fill=NA) +
-    ggplot2::coord_sf(xlim=xlim, ylim=ylim) + 
-    ggplot2::facet_wrap(~group)}
+gs <- ggplot(s1) + geom_sf(data=wa, fill=NA) + 
+    geom_sf(data=hakeoides_bbox, linewidth=1.2, linetype="dotted", fill=NA) + 
+    geom_sf(data=dplyr::mutate(st_get_contour(s1), gr="Standard KDE"), 
+        aes(colour=gr), fill=NA) + ggthemes::theme_map()
+gs + geom_sf(data=st_get_contour(s5), aes(colour=group), fill=NA) +
+    coord_sf(xlim=xlim, ylim=ylim) + facet_wrap(~group)}
 }
 
 \keyword{smooth}

@@ -27,6 +27,7 @@ st_kdcde(x,...)
 }
 
 \examples{\donttest{## tidy 2-d deconvolved density estimate
+library(ggplot2)
 data(air, package="ks")
 air <- na.omit(air[, c("time","co2","pm10")])
 air <- dplyr::filter(air, time=="20:00")
@@ -41,10 +42,9 @@ t3$group <- factor(t3$group, label=c("Standard KDE","Deconvolved KDE"))
 t3 <- as_tidy_ks(t3)
 
 ## deconvolved estimate is more clearly bimodal than standard KDE 
-gt <- ggplot2::ggplot(t3, ggplot2::aes(x=co2,y=pm10)) 
+gt <- ggplot(t3, aes(x=co2, y=pm10)) 
 gt + geom_contour_filled_ks(colour=1) + 
-    colorspace::scale_fill_discrete_sequential() +
-    ggplot2::facet_wrap(~group)} 
+    colorspace::scale_fill_discrete_sequential() + facet_wrap(~group)} 
 }
 
 \keyword{smooth}

@@ -28,6 +28,7 @@ st_kroc(x1, x2, ...)
 
 \examples{
 ## 2-d kernel ROC curve between unsuccessful and successful grafts
+library(ggplot2)
 data(hsct, package="ks")
 hsct <- dplyr::as_tibble(hsct)
 hsct <- dplyr::filter(hsct, PE.Ly65Mac1 >0 & APC.CD45.2>0)
@@ -36,8 +37,7 @@ hsct6 <- dplyr::select(hsct6, PE.Ly65Mac1, APC.CD45.2)
 hsct12 <- dplyr::filter(hsct, subject==12) ## successful graft 
 hsct12 <- dplyr::select(hsct12, PE.Ly65Mac1, APC.CD45.2)
 t1 <- tidy_kroc(data1=hsct6, data2=hsct12)
-gt <- ggplot2::ggplot(t1, ggplot2::aes(x=fpr)) 
-gt + ggplot2::geom_line(colour=1) 
+ggplot(t1, aes(x=fpr)) + geom_line(colour=1) 
 
 ## geospatial ROC curve between Grevillea species
 data(wa)
@@ -45,8 +45,7 @@ data(grevilleasf)
 hakeoides <- dplyr::filter(grevilleasf, species=="hakeoides")
 paradoxa <- dplyr::filter(grevilleasf, species=="paradoxa")
 s1 <- st_kroc(x1=hakeoides, x2=paradoxa)
-gs <- ggplot2::ggplot(s1, ggplot2::aes(x=fpr)) 
-gs + ggplot2::geom_line(colour=1) 
+ggplot(s1, aes(x=fpr)) + geom_line(colour=1) 
 }
 
 \keyword{smooth}
