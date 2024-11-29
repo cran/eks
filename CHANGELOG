@@ -1,5 +1,8 @@
 Change log file for eks
 
+1.0.6
+-Added DOI to Comp Stat article.
+
 1.0.5
 -Changed legends in plot_sf_ks to remove calls to deprecated functions from 
  mapsf.

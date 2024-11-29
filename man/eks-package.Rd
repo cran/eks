@@ -26,7 +26,7 @@
   Chacon, J.E. & Duong, T. (2018) \emph{Multivariate Kernel Smoothing
   and Its Applications}. Chapman & Hall/CRC, Boca Raton. 
 
-  Duong, T. (2022) \emph{Statistical visualisation for tidy and geospatial data in R via kernel smoothing methods in the eks package}. Submitted. DOI:10.48550/arXiv.2203.01686
+  Duong, T. (2024) Statistical visualisation for tidy and geospatial data in R via kernel smoothing methods in the eks package. \emph{Computational Statistics}. DOI: 10.1007/s00180-024-01543-9.
 }
 
 \keyword{package}
