@@ -111,8 +111,9 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
         if (!requireNamespace("mapsf", quietly=TRUE)) stop("Install the mapsf package as it is required.", call.=FALSE)
     
         forms <- list(...)
-        forms <- forms[names(forms) %in% names(formals(mapsf::mf_legend_t))]
-        forms <- forms[!(names(forms) %in% "border")]
+        forms <- forms[names(forms) %in% c("pos", "val", "pal", "title", "title_cex", "val_cex",     "col_na", "no_data", "no_data_txt", "frame", "border", "bg", "fg", "cex")]
+        ## replaces deprecated `names(formals(mapsf::mf_legend_t))'
+        forms <- forms[!(names(forms) %in% "border")] 
         gu <- guides_ks(dplyr::add_row(dplyr::ungroup(x$tidy_ks), ks=list(2L)))
         gu.title <- gu$guides$fill$params$title
 
@@ -122,7 +123,7 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
             if (missing(breaks)) contlabel <- paste0(contlabel,"%")
             nc <- length(contlabel)
         }
-
+        
         if (g=="grid")
         {
             if (oc %in% "kda")
@@ -144,17 +145,21 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
             {
                 gv <- levels(dplyr::pull(sf::st_drop_geometry(y), dplyr::all_of(dplyr::group_vars(y))))
                 ng <- length(gv)
-                do.call(mapsf::mf_legend, args=c(list(type="symb", val=gv, pal=unique(forms$border), pos=pos, title=gu.title, cex=rep(3,ng), pch=rep("-", ng)), forms))
+                do.call(mapsf::mf_legend, args=c(list(type="symb", val=gv, pal=unique(forms$border), pos=pos, title=gu.title, cex=rep(3,ng), pch=rep("-", ng)), forms[!(names(forms) %in% c("cex","pch"))]))
             }
             else 
             {
-                if (!all(is.na(forms$border)) & pal.missing) do.call(mapsf::mf_legend, args=c(list(type="symb", val=contlabel, pal=rev(forms$border), pos=pos, title=gu.title, cex=3, pch="-"), forms))
-                else do.call(mapsf::mf_legend,, args=c(list(type="typo", val=contlabel, pal=rev(pal(nc)), pos=pos, title=gu.title), forms)) 
+                if (!all(is.na(forms$border)) & pal.missing) 
+                {
+                    forms <- forms[!(names(forms) %in% c("cex","pch"))]
+                    do.call(mapsf::mf_legend, args=c(list(type="symb", val=contlabel, pal=rev(forms$border), pos=pos, title=gu.title, cex=3, pch="-"), forms[!(names(forms) %in% c("cex","pch"))]))
+                }
+                else do.call(mapsf::mf_legend, args=c(list(type="typo", val=contlabel, pal=rev(pal(nc)), pos=pos, title=gu.title), forms)) 
             }
         }
         else if (!missing(col))
         {
-            if (oc %in% "kdr") do.call(mapsf::mf_legend, args=c(list(type="symb", val="Density ridge", pal=col,  pos=pos, title=gu.title, cex=3, pch="-"), forms))
+            if (oc %in% "kdr") do.call(mapsf::mf_legend, args=c(list(type="symb", val="Density ridge", pal=col,  pos=pos, title=gu.title, cex=3, pch="-"), forms[!(names(forms) %in% c("cex","pch"))]))
             else if (oc %in% "kfs") do.call(mapsf::mf_legend, args=c(list(type="typo", val="Signif curv", pos=pos, pal=col, title=gu.title), forms))
             else if (oc %in% "ksupp") do.call(mapsf::mf_legend, args=c(list(type="symb", val="Support\nconvex hull", pos=pos, pal=col, title=gu.title), forms))
             else if (oc %in% "kda")
@@ -177,7 +182,8 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
                 nc <- length(gv)
                 formsg <- list(...)
                 if (is.null(formsg$pch)) pch <- 1 else pch <- unique(formsg$pch) 
-                do.call(mapsf::mf_legend, args=c(list(type="symb", val=gv, pal=pal(nc), pos=pos, title=gu.title, cex=rep(1,nc), pch=pch), forms))
+                forms <- forms[!(names(forms) %in% c("cex","pch"))]
+                do.call(mapsf::mf_legend, args=c(list(type="symb", val=gv, pal=pal(nc), pos=pos, title=gu.title, cex=rep(1,nc), pch=pch), forms[!(names(forms) %in% c("cex","pch"))]))
             }
             else if (oc %in% "kde.loctest")
             {
@@ -418,7 +424,9 @@ st_difference_sequence <- function(x, headtail=TRUE)
     if (edge_zero)
     {
         x.zero <- x
-        delta <- as.vector(head(sapply(x$eval.points, diff), n=1))
+        ##delta <- as.vector(head(sapply(x$eval.points, diff), n=1))
+        delta <- sapply(x$eval.points, function(.) head(diff(.), n=1))
+
         a <- 1
         x.zero$eval.points[[1]] <- c(min(x.zero$eval.points[[1]]) - delta[1]*(a:1), x.zero$eval.points[[1]], max(x.zero$eval.points[[1]]) + delta[1]*(1:a))
         x.zero$eval.points[[2]] <- c(min(x.zero$eval.points[[2]]) - delta[2]*(a:1), x.zero$eval.points[[2]], max(x.zero$eval.points[[2]]) + delta[2]*(1:a))
@@ -480,7 +488,6 @@ st_contourline <- function(x, cont, abs.cont, edge_zero=TRUE, ...)
     else if (!missing(abs.cont)) cont.geom <- dplyr::group_modify(.data=x, .f=~dplyr::tibble(.st_contourline(untidy_ks(.x), abs.cont=abs.cont, edge_zero=edge_zero))) 
     
     return(cont.geom)
-    
 }
 
 ## x = tibble with ks column (output from first part of st_kdde)

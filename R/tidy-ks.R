@@ -808,3 +808,4 @@ tidy_kcurv <- function(data, ...) { .tidy_kcurv(data, ...) }
 
     return(gg)
 }
+

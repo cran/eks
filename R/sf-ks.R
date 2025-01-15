@@ -560,3 +560,5 @@ st_kquiver <- function(x, thin=5, transf=1/4, neg.grad=FALSE, scale=1)
 
     return(fhat.sf)
 }
+
+

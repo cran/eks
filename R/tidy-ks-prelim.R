@@ -37,7 +37,7 @@ labs_ks <- function(object, x, y, ...)
 {
     if (inherits(object, "ggplot")) object <- object$data
     d <- dim_ks(object)
-; 
+
     if (inherits(object, "sf_ks"))
     {
         object <- object$tidy_ks[1,]
@@ -417,7 +417,7 @@ contourLevels.tidy_ks <- function(x, cont=c(25,50,75), group=FALSE, ...)
     else
         hts <- ks::contourLevels(fhat, prob=(100-cont)/100, approx=approx.cont)
 
-    if (oc %in% c("kde", "kdecurv", "kcde"))
+    if (oc %in% c("kde", "kdecurv", "kcde", "akde"))
     {
         hts <- sort(hts)
         hts <- c(hts, max(c(fhat$estimate, hts)) + 0.01 * max(abs(fhat$estimate)))
@@ -704,6 +704,7 @@ compute_group=function(data, scales, cont=c(25,50,75), label_percent=NULL, break
 {
     fhat <- untidy_ks(data, var_ks="weight")
     oc <- class(fhat)
+    
     if (is.null(label_percent)) label_percent <- TRUE
 
     ## compute ks probability contour levels

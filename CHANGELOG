@@ -1,5 +1,9 @@
 Change log file for eks
 
+1.0.7
+-Removed remaining call/importFrom to deprecated mapsf::mf_legend_t and fixed 
+ replicated parameters in mapsf::mf_legend.
+
 1.0.6
 -Added DOI to Comp Stat article.
 
