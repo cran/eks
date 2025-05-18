@@ -38,10 +38,12 @@ hsct <- dplyr::as_tibble(hsct)
 hsct <- dplyr::filter(hsct, PE.Ly65Mac1>0 & APC.CD45.2>0)
 hsct12 <- dplyr::filter(hsct, subject==12)   
 hsct12 <- dplyr::select(hsct12, PE.Ly65Mac1, APC.CD45.2)
-t1 <- tidy_kfs(hsct12)
-gt <- ggplot(t1, aes(x=PE.Ly65Mac1, y=APC.CD45.2)) 
-gt + geom_contour_filled_ks(aes(colour=label), colour=1) +
-    scale_fill_manual(values=7) 
+t1 <- tidy_kde(hsct12)
+t2 <- tidy_kfs(hsct12)
+gt <- ggplot(t2, aes(x=PE.Ly65Mac1, y=APC.CD45.2)) + 
+    geom_contour_ks(data=t1, colour="grey50", cont=seq(10,90,by=10)) 
+gt + geom_contour_filled_ks(aes(fill=after_stat(contregion)), colour=1) 
+gt + geom_contour_ks(aes(colour=after_stat(contregion))) 
 
 ## geospatial significant curvature regions
 data(wa)
@@ -56,8 +58,8 @@ plot(s1, add=TRUE)
 
 ## geom_sf plot
 gs <- ggplot(s1) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map() 
-gs + geom_sf(data=st_get_contour(s1, cont=50), aes(fill=label)) +
-    scale_fill_manual(values=7) + coord_sf(xlim=xlim, ylim=ylim)}
+gs + geom_sf(data=st_get_contour(s1), aes(fill=contregion)) +
+    coord_sf(xlim=xlim, ylim=ylim)}
 }
 
 \keyword{smooth}

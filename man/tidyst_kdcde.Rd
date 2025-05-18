@@ -37,14 +37,13 @@ Sigma.air <- diag(c(6705.765, 957.664))
 
 t1 <- tidy_kde(air)
 t2 <- tidy_kdcde(air, Sigma=Sigma.air, reg=0.00021)
-t3 <- dplyr::bind_rows(dplyr::mutate(t1, group=1L), dplyr::mutate(t2, group=2L))
-t3$group <- factor(t3$group, label=c("Standard KDE","Deconvolved KDE"))
-t3 <- as_tidy_ks(t3)
+t3 <- rbind(t1, t2, labels=c("Standard KDE","Deconvolved KDE"))
+tb <- contour_breaks(t3, cont=seq(10,90,by=20), group=FALSE)
 
 ## deconvolved estimate is more clearly bimodal than standard KDE 
 gt <- ggplot(t3, aes(x=co2, y=pm10)) 
-gt + geom_contour_filled_ks(colour=1) + 
-    colorspace::scale_fill_discrete_sequential() + facet_wrap(~group)} 
+gt + geom_contour_filled_ks(colour=1) + facet_wrap(~group)
+gt + geom_contour_filled_ks(colour=1, breaks=tb) + facet_wrap(~group)} 
 }
 
 \keyword{smooth}

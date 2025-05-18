@@ -35,12 +35,12 @@ data(crabs, package="MASS")
 crabs2 <- dplyr::select(crabs, FL, CW)
 t1 <- tidy_kms(crabs2)
 ## convex hulls of clusters
-t2 <- dplyr::group_by(t1, estimate)
+t2 <- dplyr::group_by(t1, label)
 t2 <- dplyr::slice(t2, chull(FL,CW))
 
 gt <- ggplot(t1, aes(x=FL, y=CW)) 
-gt + geom_point(aes(colour=estimate)) +
-    geom_polygon(data=t2, aes(fill=estimate), alpha=0.1)
+gt + geom_point(aes(colour=label)) +
+    geom_polygon(data=t2, aes(fill=label), alpha=0.1, col=1, linetype="dotted")
 
 ## geospatial mean shift clustering 
 data(wa)
@@ -48,25 +48,23 @@ data(grevilleasf)
 hakeoides <- dplyr::filter(grevilleasf, species=="hakeoides")
 s1 <- st_kms(hakeoides)
 ## convex hulls of clusters
-s2 <- dplyr::group_by(s1$sf, estimate)
+s2 <- dplyr::group_by(s1$sf, label)
 s2 <- dplyr::summarise(s2, geometry=sf::st_combine(geometry))
 s2 <- sf::st_convex_hull(s2)
 
 ## base R plot
 xlim <- c(1.2e5, 1.1e6); ylim <- c(6.1e6, 7.2e6)
 plot(wa, xlim=xlim, ylim=ylim)
-plot(s1, add=TRUE, pch=16, pal=function(.){
-    colorspace::qualitative_hcl(n=., palette="Set2")})
+plot(s1, add=TRUE, pch=16)
 plot(s2, add=TRUE, lty=3, pal=function(.){
     colorspace::qualitative_hcl(n=., palette="Set2", alpha=0.15)})
 
 ## geom_sf plot
 gs <- ggplot(s1) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map()
-gs + geom_sf(data=s1$sf, aes(colour=estimate), alpha=0.5) + 
-    geom_sf(data=s2, aes(fill=estimate), linetype="dotted", alpha=0.15) + 
-    colorspace::scale_colour_discrete_qualitative(palette="Set2") +
-    colorspace::scale_fill_discrete_qualitative(palette="Set2") +
+gs + geom_sf(data=s1$sf, aes(colour=label), alpha=0.5) + 
+    geom_sf(data=s2, aes(fill=label), linetype="dotted", alpha=0.15) + 
     coord_sf(xlim=xlim, ylim=ylim) 
 }
+
 
 \keyword{smooth}

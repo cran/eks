@@ -99,15 +99,13 @@ crabs1 <- dplyr::select(crabs, FL)
 t1 <- tidy_kde(crabs1)
 g1 <- ggplot(t1, aes(x=FL)) + geom_line()
 g1 + geom_rug_ks(colour=4) 
-g1 + geom_rug(stat="rug_ks", colour=4) ## same output
 
 ## scatter plot for tidy 2-d kernel density estimate
 crabs2 <- dplyr::select(crabs, FL, CW)
 t2 <- tidy_kde(crabs2)
 g2 <- ggplot(t2, aes(x=FL, y=CW)) 
-g2 + geom_contour_ks(colour=1) + geom_point_ks(colour=4) 
-g2 + geom_contour(stat="contour_ks", colour=1) +
-    geom_point(stat="point_ks", colour=4) ## same output
+g2 + geom_contour_ks(aes(colour=after_stat(estimate))) + 
+    geom_point_ks(colour=1) 
 }
 
 \keyword{hplot}   

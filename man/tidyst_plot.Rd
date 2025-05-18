@@ -20,9 +20,8 @@
 \arguments{
   \item{data,x}{object of class \code{tidy_ks} (output from \code{tidy_k*}) or object of class \code{sf_ks} (output from \code{st_k*})}
   \item{mapping}{default list of aesthetic mappings to use for plot.}
-   \item{which_geometry}{type of geometry to display: one of \code{c("sf", "grid")}. Default is \code{"sf"}.}
-  \item{...}{other graphics parameters. See below.
-    }
+  \item{which_geometry}{type of geometry to display: one of \code{"sf","grid"}. Default is \code{"sf"}.}
+  \item{...}{other graphics parameters. See below.}
 }
   
 \value{
@@ -34,16 +33,19 @@
 
     For \code{sf_ks} objects, the \code{ggplot} method is similar to the above method, except no default aesthetics are added. The function header for the \code{plot} method is 
     \preformatted{
-    plot(x, which_geometry="sf", percent_label=TRUE, cont=c(25,50,75), 
-      abs_cont, which_deriv_ind=1, main="", legend=TRUE, ...)}
+    plot(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks, breaks, 
+      which_deriv_ind=1, pal, col, legend=TRUE, legend.title, digits=4, ...)}
     where
     \describe{  
       \item{\code{which_geometry}}{type of geometry to display: one of \code{c("sf", "grid")}. Default is \code{"sf"}.}
       \item{\code{cont}}{vector of percentages for contour heights}
-      \item{\code{abs_cont}}{vector of values for contour heights}
+      \item{\code{abs_cont},\code{breaks}}{vector of values for contour heights}
       \item{\code{which_deriv_ind}}{index for partial derivative for density derivative estimate. Default is 1.}
-      \item{\code{main}}{main plot label. Default is "".}
+      \item{\code{pal}}{colour palette function}
+      \item{\code{col}}{vector of colours}
       \item{\code{legend}}{flag to add legend. Default is TRUE. The output from \code{mapsf::mf_legend} in base \R is not as robust as the legend output in \code{ggplot2}.}
+      \item{\code{legend.title}}{legend title}
+      \item{\code{digits}}{number of significant digits in legend key. Default is 4.}
       \item{...}{other graphics parameters in the \code{plot} method for \code{sf} objects or for \code{mapsf::mf_legend}.}
       }    
 }

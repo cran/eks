@@ -29,8 +29,7 @@ st_kdr(x, dTolerance, ...)
     To reduce the complexity of the density ridge, a call to \code{sf::st_simplify(,dTolerance)} is made. If \code{dTolerance} is missing, then it defaults to approximately the mean distance between each pair of consecutive points in each segment of the density ridge. If \code{dTolerance=0} then this step of Ramer-Douglas-Peucker simplification is not carried out.
 }
 
-\examples{
-## tidy density ridge estimate
+\examples{## tidy density ridge estimate
 library(ggplot2)
 \donttest{data(cardio, package="ks")
 cardio <- dplyr::as_tibble(cardio[,c("ASTV","Mean")])
@@ -39,10 +38,9 @@ cardio <- cardio[sample(1:nrow(cardio), round(nrow(cardio)/4,0)),]
 ## gridsize=c(21,21) is for illustrative purposes only
 ## remove for more complete KDR
 t1 <- tidy_kdr(cardio, gridsize=c(21,21))
-gt <- ggplot(t1, aes(x=ASTV, y=Mean)) 
-gt + geom_point_ks(colour=3, alpha=0.8) + 
-    geom_path(aes(colour=label, group=segment), linewidth=1.2, alpha=0.8) +
-    scale_colour_manual(values=6)}
+gt <- ggplot(t1, aes(x=ASTV, y=Mean))
+gt + geom_point_ks(colour=3) + 
+    geom_path(aes(colour=label, group=segment))} 
 
 ## geospatial density ridge estimate
 data(wa)
@@ -55,14 +53,14 @@ s1 <- st_kdr(hakeoides, gridsize=c(21,21))
 ## base R plot
 xlim <- c(1.2e5, 1.1e6); ylim <- c(6.1e6, 7.2e6)
 plot(wa, xlim=xlim, ylim=ylim)
-plot(sf::st_geometry(hakeoides), add=TRUE, col=3, pch=16)
-plot(s1, add=TRUE, col=6, lwd=3, alpha=0.8)
+plot(sf::st_geometry(hakeoides), add=TRUE, col=3, pch=16, cex=0.5)
+plot(s1, add=TRUE)
 
 ## geom_sf plot
 gs <- ggplot(s1) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map()
 gs + geom_sf(data=hakeoides, colour=3, alpha=0.5) +
-    geom_sf(data=s1$sf, aes(colour=label), linewidth=1.2, alpha=0.8) +
-    scale_colour_manual(values=6) + coord_sf(xlim=xlim, ylim=ylim) 
+    geom_sf(data=s1$sf, aes(colour=contregion)) + 
+    coord_sf(xlim=xlim, ylim=ylim) 
 }
 
 \keyword{smooth}

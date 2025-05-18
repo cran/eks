@@ -29,12 +29,14 @@ st_kcurv(x, ...)
 \examples{
 \donttest{## tidy kernel summary density curvature estimate
 library(ggplot2)
+theme_set(theme_bw())
 data(crabs, package="MASS")
 crabs2 <- dplyr::select(crabs, FL, CW)
 t1 <- tidy_kdde(crabs2, deriv_order=2)
 t2 <- tidy_kcurv(t1)
 gt1 <- ggplot(t2, aes(x=FL, y=CW)) 
-gt1 + geom_contour_filled_ks(colour=1) + scale_fill_brewer(palette="Oranges")
+gt1 + geom_contour_filled_ks(colour=1) 
+gt1 + geom_contour_ks(aes(colour=after_stat(contperc))) 
 
 ## geospatial kernel summary density curvature estimate
 data(wa)
@@ -50,8 +52,7 @@ plot(s2, add=TRUE)
 
 ## geom_sf plot
 gs1 <- ggplot(s2) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map()
-gs1 + geom_sf(data=st_get_contour(s2), aes(fill=label_percent(contlabel))) +
-    colorspace::scale_fill_discrete_sequential(h1=30,c1=360,c2=30) +
+gs1 + geom_sf(data=st_get_contour(s2), aes(fill=contperc)) +
     coord_sf(xlim=xlim, ylim=ylim)}
 }
 

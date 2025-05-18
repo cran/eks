@@ -47,30 +47,37 @@ rectb <- data.frame(x=c(0,100,100,0,0), y=c(0,0,100,100,0))
 
 ## standard density estimate
 t1 <- tidy_kde(wb2)
-## beta boundary density estimate
-t2 <- tidy_kde_boundary(wb2, boundary.kernel="beta", xmin=xmin, xmax=xmax)
-## linear boundary density estimate
-t3 <- tidy_kde_boundary(wb2, boundary.kernel="linear", xmin=xmin, xmax=xmax)
 ## tidy truncated density estimate
-t4 <- tidy_kde_truncate(wb2, boundary=rectb)
+t2 <- tidy_kde_truncate(wb2, boundary=rectb)
+tt <- rbind(t1, t2, labels=c("Standard KDE", "Truncated KDE"))
+tb <- contour_breaks(tt, group=FALSE)
 
-t5 <- c(t1, t2, t3, t4, labels=c("Standard KDE","Beta bd KDE", "Linear bd KDE",
-    "Truncated KDE"))
+## standard estimate exceeds boundary but not truncated estimate
+gr <- geom_polygon(data=rectb, aes(x=x,y=y), inherit.aes=FALSE, fill=NA, 
+    colour=1, linetype="dashed")
+gt <- ggplot(tt, aes(x=internet, y=ag.value)) 
+gt + geom_contour_filled_ks(colour=1, breaks=tb) + gr + facet_wrap(~group)
 
+\donttest{## linear boundary density estimate
+## beta boundary density estimate
+t3 <- tidy_kde_boundary(wb2, boundary.kernel="beta", xmin=xmin, xmax=xmax)
+t4 <- tidy_kde_boundary(wb2, boundary.kernel="linear", xmin=xmin, xmax=xmax)
+t5 <- rbind(t1, t2, t3, t4, labels=c("Standard KDE", "Truncated KDE", 
+    "Beta bd KDE", "Linear bd KDE"))
+tb <- contour_breaks(t5, group=FALSE)
 ## standard estimate exceeds boundary but not boundary or truncated estimates
-gr <- geom_polygon(data=rectb, inherit.aes=FALSE, aes(x=x,y=y), 
-    fill=NA, colour=1, linetype="dashed")
-gt <- ggplot(t5, aes(x=internet,y=ag.value)) 
-gt + geom_contour_ks(aes(colour=group)) + gr + facet_wrap(~group)
+gt + geom_contour_filled_ks(data=t5, colour=1, breaks=tb) + gr + facet_wrap(~group)}
 
 ## geospatial boundary density estimates
 \donttest{data(wa)
 data(grevilleasf)
 hakeoides <- dplyr::filter(grevilleasf, species=="hakeoides")
-hakeoides_crop <- sf::st_crop(hakeoides, xmin=4e5, xmax=5.7e5, ymin=6.47e6, ymax=7e6)
-hakeoides_bbox <- sf::st_as_sfc(sf::st_bbox(hakeoides_crop))
-xminb <- sf::st_bbox(hakeoides_crop)[1:2]
-xmaxb <- sf::st_bbox(hakeoides_crop)[3:4]
+hakeoides_bbox <- sf::st_bbox(c(xmin=4e5, xmax=5.7e5, ymin=6.47e6, ymax=7e6), 
+    crs=sf::st_crs(hakeoides))
+xminb <- hakeoides_bbox[1:2]; xmaxb <- hakeoides_bbox[3:4]
+hakeoides_bbox <- sf::st_as_sfc(hakeoides_bbox)
+hakeoides_crop <- sf::st_filter(hakeoides, hakeoides_bbox)
+
 s1 <- st_kde(hakeoides_crop)
 s2 <- st_kde_boundary(hakeoides_crop, boundary.kernel="beta", 
     xmin=xminb, xmax=xmaxb)
@@ -78,39 +85,42 @@ s3 <- st_kde_boundary(hakeoides_crop, boundary.kernel="linear",
     xmin=xminb, xmax=xmaxb)
 ## geospatial truncated density estimate    
 s4 <- st_kde_truncate(x=hakeoides_crop, boundary=hakeoides_bbox)
-s5 <- c(s1, s2, s3, s4, labels=c("Standard KDE","Beta bd KDE", "Linear bd KDE",
-    "Truncated KDE"))
+s5 <- rbind(s1, s2, s3, s4, labels=c("Standard KDE", "Beta bd KDE", 
+    "Linear bd KDE", "Truncated KDE"))
 
 ## base R plots
 xlim <- c(1.2e5, 1.1e6); ylim <- c(6.1e6, 7.2e6)
+cols <- colorspace::qualitative_hcl(n=4, palette="Set2")
+
+layout(matrix(c(1,3,2,4), ncol=2))
 plot(wa, xlim=xlim, ylim=ylim)
 plot(hakeoides_bbox, add=TRUE, lty=3, lwd=2)
-plot(s1, add=TRUE, border=1, col="transparent", legend=FALSE)
-plot(s2, add=TRUE, border=2, col="transparent", legend=FALSE)
-mapsf::mf_legend(type="symb", val=c("Standard KDE","Beta bd KDE"), pal=c(1,2), 
-    cex=rep(3,2), pch=rep("-",2), title="Density", pos="bottomleft")
+plot(s1, add=TRUE, border=cols[1], col=NA, legend=FALSE)
 
 plot(wa, xlim=xlim, ylim=ylim)
 plot(hakeoides_bbox, add=TRUE, lty=3, lwd=2)
-plot(s1, add=TRUE, border=1, col="transparent", legend=FALSE)
-plot(s3, add=TRUE, border=3, col="transparent", legend=FALSE)
-mapsf::mf_legend(type="symb", val=c("Standard KDE","Linear bd KDE"), pal=c(1,3), 
-    cex=rep(3,2), pch=rep("-",2), title="Density", pos="bottomleft")
+plot(s2, add=TRUE, border=cols[2], col=NA, legend=FALSE)
 
 plot(wa, xlim=xlim, ylim=ylim)
 plot(hakeoides_bbox, add=TRUE, lty=3, lwd=2)
-plot(s1, add=TRUE, border=1, col="transparent", legend=FALSE)
-plot(s4, add=TRUE, border=4, col="transparent", legend=FALSE)
-mapsf::mf_legend(type="symb", val=c("Standard KDE","Truncated KDE"), pal=c(1,4), 
-    cex=rep(3,2), pch=rep("-",2), title="Density", pos="bottomleft")
+plot(s3, add=TRUE, border=cols[3], col=NA, legend=FALSE)
+mapsf::mf_legend(type="symb", val=c("Standard KDE","Beta bd KDE", 
+    "Linear bd KDE", "Truncated KDE"), pal=cols, cex=rep(3,4), 
+    pch=rep("-",4), title="Density",  pos="bottomleft")
+
+plot(wa, xlim=xlim, ylim=ylim)
+plot(hakeoides_bbox, add=TRUE, lty=3, lwd=2)
+plot(s4, add=TRUE, border=cols[4], col=NA, legend=FALSE)
+layout(1)
 
 ## geom_sf plots
-gs <- ggplot(s1) + geom_sf(data=wa, fill=NA) + 
-    geom_sf(data=hakeoides_bbox, linewidth=1.2, linetype="dotted", fill=NA) + 
-    geom_sf(data=dplyr::mutate(st_get_contour(s1), gr="Standard KDE"), 
-        aes(colour=gr), fill=NA) + ggthemes::theme_map()
-gs + geom_sf(data=st_get_contour(s5), aes(colour=group), fill=NA) +
-    coord_sf(xlim=xlim, ylim=ylim) + facet_wrap(~group)}
+gs <- ggplot() + geom_sf(data=wa, fill=NA) + 
+    geom_sf(data=hakeoides_bbox, linetype="dotted", fill=NA) + 
+    ggthemes::theme_map() +
+    colorspace::scale_colour_discrete_qualitative(palette="Set2")
+gs + geom_sf(data=st_get_contour(s5), aes(colour=group), fill=NA) + 
+    coord_sf(xlim=xlim, ylim=ylim) + 
+    guides(colour=guide_legend(title="Density")) + facet_wrap(~group)}
 }
 
 \keyword{smooth}

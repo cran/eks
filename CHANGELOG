@@ -1,7 +1,39 @@
 Change log file for eks
 
+1.1.0
+-Fixed bugs in geom_contour_ks(), geom_filled_contour_ks().
+-Added quasi KDE function tidy_as_kde(), st_as_kde().
+-Added default colour scales scale_*_ks() for ggplots to mimic those for base
+ R plots. 
+-Fixed bug in .st_contourline() and st_get_contour() to create contour 
+ polygons with holes.
+-Fixed bugs for contour plots with for *_kde_local_test().
+-Changed default contour regions in st_k*$sf from 1:99 to seq(5,95,by=5).
+-Computed extra attribute "contperc" in st_get_contour() for easier 
+ percentage contour density labels in ggplots.    
+-Deprecated contlabel, label_percent(contlabel) for aesthetics in
+ geom_contour_ks(), geom_contour_filled_ks().
+-Added 100% contour in st_get_contour() for "kdde" objects.
+-Added geom_contour_ks() for "kfs", "kde_local_test" objects.
+-Fixed contour levels for tidy_kcurv objects for use in geom_contour_*_ks(). 
+-Added default colours for marginal KDEs for st_kda() for base R plot to
+ be consistent with ggplot.
+-Changed legend labels for tidyst_kdr() and tidyst_kfs() output to be
+ consistent with other legends. 
+-Fixed bug for jitter=TRUE in geom_rug_ks().
+-Added digits parameter to control #signif digits in legend keys. 
+-Allowed for some flexibility for name of sf geometry column.
+-Rewrote scale_transparent() to be consistent with ks::plot.kdde().
+-Added scale_*_remove() to remove fill/colour scales in gggplots to avoid
+ warning messages for adding multiple scales with "+.gg".
+-Removed group parameter from contourLevels.tidy_ks(). 
+-Maintained export of st_add_coordinates(), scale_transparent(), 
+ label_percent() but help pages are moved to eks-internal.
+-Added rbind method for "tidy_ks" and "sf_ks" classes.
+-Added geos, lwgeom to Imports, moved colorspace from Suggests to Imports. 
+ 
 1.0.7
--Removed remaining call/importFrom to deprecated mapsf::mf_legend_t and fixed 
+-Removed remaining call to/import from deprecated mapsf::mf_legend_t and fixed 
  replicated parameters in mapsf::mf_legend.
 
 1.0.6

@@ -30,12 +30,11 @@ st_kcde(x, ...)
 
 \examples{library(ggplot2)
 data(crabs, package="MASS")
-## tidy 1-d distribution estimate per species
-crabs1 <- dplyr::select(crabs, FL, sp)
-crabs1 <- dplyr::group_by(crabs1, sp)
+## tidy 1-d distribution estimate 
+crabs1 <- dplyr::select(crabs, FL)
 t1 <- tidy_kcde(crabs1)
-gt1 <- ggplot(t1, aes(x=FL)) 
-gt1 + geom_line(colour=1) + geom_rug_ks(colour=4) + facet_wrap(~sp)
+gt2 <- ggplot(t1, aes(x=FL)) 
+gt2 + geom_line(colour=1) + geom_rug_ks(colour=4) 
 
 ## tidy 2-d copula estimate
 crabs2 <- dplyr::select(crabs, FL, CW)
@@ -47,23 +46,24 @@ gt2 + geom_contour_filled_ks(colour=1, cont=seq(10,90,by=10))
 \donttest{data(wa)
 data(grevilleasf)
 paradoxa <- dplyr::filter(grevilleasf, species=="paradoxa")
-paradoxa_crop <- sf::st_crop(paradoxa, xmin=4e5, xmax=8e5, ymin=6.4e6, ymax=6.65e6)
-paradoxa_bbox <- sf::st_as_sfc(sf::st_bbox(paradoxa_crop))
-xminb <- sf::st_bbox(paradoxa_crop)[1:2]
-xmaxb <- sf::st_bbox(paradoxa_crop)[3:4]
+paradoxa_bbox <- sf::st_bbox(c(xmin=4e5, xmax=8e5, ymin=6.4e6, ymax=6.65e6), 
+    crs=sf::st_crs(paradoxa))
+xminb <- paradoxa_bbox[1:2]; xmaxb <- paradoxa_bbox[3:4]
+paradoxa_bbox <- sf::st_as_sfc(paradoxa_bbox)
+paradoxa_crop <- sf::st_filter(paradoxa, paradoxa_bbox)
 s1 <- st_kcde(paradoxa_crop, xmin=xminb, xmax=xmaxb)
 
-## base R filled contour plot
+## base R plot
 xlim <- c(1.2e5, 1.1e6); ylim <- c(6.1e6, 7.2e6)
 plot(wa, xlim=xlim, ylim=ylim)
 plot(paradoxa_bbox, add=TRUE, lty=3, lwd=2)
 plot(s1, add=TRUE)
 
-## geom_sf filled contour plot
+## geom_sf plot
 gs1 <- ggplot(s1) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map() 
 gs1 + geom_sf(data=paradoxa_bbox, linewidth=1.2, linetype="dotted", fill=NA) +
-    geom_sf(data=st_get_contour(s1), aes(fill=label_percent(contlabel))) +
-    scale_fill_viridis_d() + coord_sf(xlim=xlim, ylim=ylim)}
+    geom_sf(data=st_get_contour(s1), aes(fill=contperc)) +
+    coord_sf(xlim=xlim, ylim=ylim)}
 }
 
 \keyword{smooth}

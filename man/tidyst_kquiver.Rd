@@ -42,32 +42,27 @@ t1 <- tidy_kde(crabs2)
 t2 <- tidy_kdde(crabs2, deriv_order=1)
 t3 <- tidy_kquiver(t2, thin=5) 
 gt <- ggplot(t1, aes(x=FL, y=CW)) 
-gt + geom_contour_filled_ks(colour="grey50", cont=seq(10,90,by=10)) +
-    colorspace::scale_fill_discrete_sequential(alpha=0.5) + 
-    ggquiver::geom_quiver(data=t3, aes(u=u, v=v), colour=6)
+gt + geom_contour_filled_ks(alpha=0.5) + 
+    ggquiver::geom_quiver(data=t3, aes(u=u, v=v), colour=1)
 
 ## geospatial kernel `quiver' estimate
 data(wa)
 data(grevilleasf)
 hakeoides <- dplyr::filter(grevilleasf, species=="hakeoides")
-hakeoides_coord <- st_add_coordinates(hakeoides)
 s1 <- st_kde(hakeoides)
 s2 <- st_kdde(hakeoides, deriv_order=1)
-s3 <- st_kquiver(s2, thin=9) 
+s3 <- st_kquiver(s2, thin=5)
 
 ## base R plot
 xlim <- c(1.2e5, 1.1e6); ylim <- c(6.1e6, 7.2e6)
 plot(wa, xlim=xlim, ylim=ylim)
 plot(s1, add=TRUE, alpha=0.5, border="grey50")
-plot(s3$tidy_ks$ks[[1]], add=TRUE, display="quiver")
+plot(s3$tidy_ks$ks[[1]], thin=5, add=TRUE, display="quiver")
 
-## geom_sf plot - ggquiver::geom_quiver not compatible with ggplot2::geom_sf layers
-## use instead geom_segment 
+## geom_sf plot 
 gs <- ggplot(s1) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map()
-gs + geom_sf(data=st_get_contour(s1), aes(fill=label_percent(contlabel)), alpha=0.5) +
-    geom_segment(data=s3$sf, aes(x=lon, xend=lon_end, y=lat, yend=lat_end), 
-    arrow=grid::arrow(length=0.05*s3$sf$len)) + 
-    colorspace::scale_fill_discrete_sequential("Heat2") + 
+gs + geom_sf(data=st_get_contour(s1), aes(fill=contperc), alpha=0.5) +
+   ggquiver::geom_quiver(data=s3$sf, aes(x=lon, y=lat, u=u, v=v), colour=1) + 
     coord_sf(xlim=xlim, ylim=ylim)}
 }
 
