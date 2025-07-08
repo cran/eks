@@ -1,6 +1,6 @@
 Package: eks
-Version: 1.1.0
-Date: 2025-05-18
+Version: 1.1.1
+Date: 2025-07-08
 Title: Tidy and Geospatial Kernel Smoothing
 Authors@R: c(person("Tarn", "Duong", role=c("aut","cre"), email="tarn.duong@gmail.com", comment=c(ORCID="0000-0002-1198-3482"))) 
 Maintainer: Tarn Duong <tarn.duong@gmail.com>
@@ -14,7 +14,7 @@ Description: Extensions of the kernel smoothing functions from the 'ks' package 
 License: GPL-2 | GPL-3
 URL: https://www.mvstat.net/mvksa/
 NeedsCompilation: no
-Packaged: 2025-05-18 16:57:28 UTC; tduong
+Packaged: 2025-07-08 10:34:54 UTC; tduong
 Author: Tarn Duong [aut, cre] (ORCID: <https://orcid.org/0000-0002-1198-3482>)
 Repository: CRAN
-Date/Publication: 2025-05-18 17:30:02 UTC
+Date/Publication: 2025-07-08 11:40:01 UTC

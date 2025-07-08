@@ -55,6 +55,29 @@ create_label <- function(x, digits, add_contperc, is_kdde, is_filled_contour=TRU
     return(x)
 }
 
+## mimicks stat_contour_filled_ks output
+add_contour_breaks <- function(x, breaks, digits=4, ...)
+{
+    if (missing(breaks)) breaks <- contour_breaks(data=x, ...)
+    breaks2 <- sort(unique(c(breaks, max(x$estimate))))
+    xnames <- colnames(x)
+    x$.id <- 1:nrow(x)
+    x.ord <- order(x$estimate)
+
+    xlab <- x[x.ord,]
+    xlab$estimate <- cut(x[x.ord,]$estimate, breaks2, labels=head(round_signif(breaks2, digits=digits), n=-1), digits=digits, include.lowest=TRUE)
+    xlab$estimate_high <- cut(x[x.ord,]$estimate, breaks2, labels=tail(round_signif(breaks2), n=-1), digits=digits, include.lowest=TRUE)
+    xlab$estimate_high <- unfactor(xlab$estimate_high)
+    xlab$contlabel <- xlab$estimate <- unfactor(xlab$estimate)
+    xlab <- create_label(xlab, digits=digits, add_contperc=FALSE, is_kdde=TRUE, is_filled_contour=TRUE)
+    xlab <- xlab[order(xlab$.id),]
+    xlab$estimate <- ordered(xlab$estimate)
+    xlab <- xlab[c(xnames, "contregion")]
+   
+    return(xlab)
+}
+
+
 ## move group_vars in x to last column
 ## group_vars can be those in y  
 move_group_vars <- function(x, y)
@@ -389,12 +412,12 @@ scale_asymmetric <- function(object, breaks, transp_neutral)
         scf <- scale_fill_discrete_diverging_breaks(breaks=breaks, transp_neutral=transp_neutral, extend1=TRUE)
     }
     sc <- list(scale_colour_discrete_remove(), scc, scale_fill_discrete_remove(), scf)
-
+    
     return(sc)
 }
 
 ## remove scales from ggplot object to avoid multiple scales warning message 
-ggplot_add.scale_rem <- function(object, plot, object_name) 
+ggplot_add.scale_rem <- function(object, plot, object_name, ...) 
 {
     if (length(plot$scales$scales)>0)
     {

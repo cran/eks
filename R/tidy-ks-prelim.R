@@ -550,7 +550,7 @@ compute_group=function(self, data, scales, cont=c(25,50,75), contperc=FALSE, bre
         isolines <- .ggplot2_xyz_to_isolines(data, breaks)
         path_df <- .ggplot2_iso_to_path(isolines, data$group[1])
         path_df$estimate <- path_df$level <- as.numeric(path_df$level)
-        path_df$level <- round_signif(as.numeric(path_df$level), digits=digits) 
+        path_df$level <- round_signif(path_df$level, digits=digits) 
         path_df$level <- ordered(path_df$level)
     }
     
@@ -700,15 +700,12 @@ compute_group=function(data, scales, cont=c(25,50,75), contperc=TRUE, breaks=NUL
     }
     else
     {
-        if (any(names(breaks) %in% "breaks")) 
-            breaks <- breaks$breaks
+        if (any(names(breaks) %in% "breaks")) breaks <- breaks$breaks
         else if (is.list(breaks)) breaks <- breaks[[unique(data$group)]]
         breaks <- sort(breaks)
        
         if ((oc %in% c("kdde","kqdde","kda")))
-        {
             breaks <- c(sort(breaks), max(c(sapply(fhat$estimate,max), breaks)) + 0.01 * max(abs(sapply(fhat$estimate,max))))
-        }
         else
            breaks <- c(sort(breaks), max(c(fhat$estimate, breaks)) + 0.01 * max(abs(fhat$estimate)))
         isobands <- .ggplot2_xyz_to_isobands(data, breaks)

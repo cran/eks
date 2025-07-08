@@ -601,7 +601,7 @@ st_kquiver <- function(x, thin=5, transf=1/4, neg.grad=FALSE, scale=1)
 
 ## spatial version of ks::as.kde
 ## x = complete sf polygon grid
-st_as_kde <- function(x, attrib=1, density, ...)
+st_as_kde <- function(x, attrib=1, density, cont, ...)
 {
     if (is.numeric(attrib)) attrib <- names(x)[attrib]
     x2 <- tidy_intergrid(x, attrib=attrib) 
@@ -636,10 +636,10 @@ st_as_kde <- function(x, attrib=1, density, ...)
     }
     
     ## convert contour polygons to multipolygon geometry
-    cont.seq <- seq(5, 95, by=5)
+    if (missing(cont)) cont <- seq(5, 95, by=5)
     if (density) 
     {
-        cont.geom <- st_contourline(x=fhat, cont=cont.seq)
+        cont.geom <- st_contourline(x=fhat, cont=cont)
         cont.geom <- sf::st_sf(cont.geom, crs=crs)
         cont.geom <- suppressWarnings(sf::st_crop(cont.geom, sf::st_bbox(x)))
         cont.geom <- st_create_label(cont.geom)
@@ -652,7 +652,7 @@ st_as_kde <- function(x, attrib=1, density, ...)
         crs <- sf::st_crs(x) 
         
         ## convert contours to multipolygon geometry
-        cont.geom <- dplyr::group_modify(.data=fhat, .f=~dplyr::tibble(geometry=list(st_contourline_kdde(x=untidy_ks(.x), which_deriv_ind=.x$deriv_ind, cont=cont.seq))))
+        cont.geom <- dplyr::group_modify(.data=fhat, .f=~dplyr::tibble(geometry=list(st_contourline_kdde(x=untidy_ks(.x), which_deriv_ind=.x$deriv_ind, cont=cont))))
         cont.geom <- dplyr::group_modify(.data=cont.geom, .f=~data.frame(.x$geometry))
         cont.geom <- dplyr::left_join(cont.geom, dplyr::select(fhat, dplyr::all_of(gv2)), by=gv)
         cont.geom <- dplyr::arrange(cont.geom, .data$deriv_ind)
@@ -689,6 +689,7 @@ st_get_contour <- function(x, cont=c(25,50,75), breaks, disjoint=TRUE, digits)
     crop <- TRUE      ## crop to bounding box of x$grid
     cont100 <- TRUE   ## compute 100% contour = bounding box \ union {all other contour regions}
     oct <- object_class(x, type="tks")
+
     if (missing(digits)) digits <- ifelse(oct %in% c("kcde", "kcopula", "kde.loctest", "kfs", "kdr", "kms"), 2, 4)
     fhat <- dplyr::slice_head(x$tidy_ks)
     missing_breaks <- missing(breaks)
@@ -698,7 +699,7 @@ st_get_contour <- function(x, cont=c(25,50,75), breaks, disjoint=TRUE, digits)
     {
         xc <- dplyr::filter(x$sf, .data$contlabel %in% cont)
     }
-    else if (oct %in% c("kdr", "kms", "kquiver", "ksupp"))
+    else if (oct %in% c("kdr", "kms", "kquiver", "ksupp", "kde.loctest"))
     {
         xc <- x$sf
     }
@@ -757,13 +758,13 @@ st_get_contour <- function(x, cont=c(25,50,75), breaks, disjoint=TRUE, digits)
             xc <- sf::st_sf(xc, crs=sf::st_crs(x$sf))
             xc <- dplyr::arrange(xc, .data$contlabel)
         }
-        ## add non-integer contour levels
+        ## add other contour levels
         else
         {
             xc <- dplyr::filter(x$sf, .data$contlabel %in% cont)
             cont2 <- cont[!(cont %in% x$sf$contlabel)]
             cont2 <- cont2[cont2>=0 & cont2<=100]
-            cont2 <- cont2[round(cont2,0)!=cont2]
+            #cont2 <- cont2[round(cont2,0)!=cont2]
             if (length(cont2)>0)
             {   
                 cont.geom <- st_contourline(x=fhat, cont=cont2, digits=digits)
@@ -865,7 +866,7 @@ st_create_label <- function(x, digits=4, is_kdde=FALSE, missing_breaks=TRUE)
     ## create contline label
     if (is_kdde)
     {
-        xc <- dplyr::mutate(xc, contline=ifelse(.data$estimate==0, NA, 1L), .after="contregion")
+        xc <- dplyr::mutate(xc, contline=ifelse(.data$estimate==0, 0L, 1L), .after="contregion")
         xc$contline <- factor(xc$contline)
     }
 
@@ -923,40 +924,59 @@ st_intergrid <- function(x, attrib, cellsize, verbose=FALSE)
     xgrid.bbox <- sf::st_as_sfc(xgrid.bbox)
     sf::st_crs(xgrid.bbox) <- sf::st_crs(x)
     
-    ## for grid cells with varying areas, subdivide grid cells before interpolation     
-    xarea <- geos::geos_area(x)    
+    ## for grid cells with varying areas, subdivide grid cells before interpolation  
+    xarea <- geos::geos_area(x)
+    if (verbose) cat("Start st_make_grid\n")    
     nsubdiv <- ifelse(all(abs(xarea - mean(xarea)) <= 0.1*mean(xarea)), 1, 2) 
     xgrid.subdiv <- sf::st_sf(geometry=sf::st_make_grid(xgrid.bbox, cellsize=cellsize/nsubdiv, crs=sf::st_crs(x), square=TRUE))
     sf::st_geometry(xgrid.subdiv) <- sfname
     xgrid.subdiv <- st_add_index(xgrid.subdiv)
+    if (verbose) cat("End st_make_grid\n") 
 
-    ## assign those sub-divided cells which cover >=2 different original 
-    ## grid cells in xgrid to single value that is closest to weighted mean
-    ## search for more efficient operation than st_intersection?
-    xgrid.subdiv.int <- suppressWarnings(sf::st_intersection(x, xgrid.subdiv))
-    xgrid.subdiv.int <- xgrid.subdiv.int[sf::st_is(xgrid.subdiv.int, "POLYGON"),]
-    xgrid.subdiv.int <- dplyr::mutate(xgrid.subdiv.int, area=geos::geos_area(xgrid.subdiv.int), .before=!!sfname)
-    ## remove small intersections <= 0.01 * grid cell area
-    ## as these may unduly affect the attrib weighted mean
-    ## if these intersections have attrib value=0
-    xgrid.subdiv.int <- dplyr::filter(xgrid.subdiv.int, .data$area>prod(!!cellsize)*1e-2)
-    xgrid.subdiv.int <- dplyr::arrange(xgrid.subdiv.int, dplyr::desc(.data$area*.data[[attrib]]))
-    xgrid.subdiv.int <- dplyr::group_by(xgrid.subdiv.int, .data$cell_id)
-    xgrid.subdiv.int <- dplyr::summarise(sf::st_drop_geometry(xgrid.subdiv.int), attribm=weighted.mean(.data[[attrib]], .data$area, na.rm=TRUE), .attrib=.data[[attrib]][which.min(abs(.data$attribm-.data[[attrib]]))[1]])
-    #xgrid.subdiv.int <- dplyr::summarise(sf::st_drop_geometry(xgrid.subdiv.int), .attrib=weighted.mean(.data[[attrib]], .data$area, na.rm=TRUE))
-    xgrid.subdiv.int <- dplyr::rename_with(xgrid.subdiv.int, function(.) attrib, ".attrib")
-    xgrid.subdiv.int$attribm <- NULL
-   
-    ## fill in other grid cells that are not intersected 
-    xgrid.subdiv <- dplyr::right_join(xgrid.subdiv.int, xgrid.subdiv, by=c("cell_id"))
-    xgrid.subdiv <- sf::st_sf(xgrid.subdiv)
-    xgrid.subdiv <- dplyr::relocate(xgrid.subdiv, dplyr::all_of(attrib), .before=1)
-    xgrid.subdiv <- dplyr::arrange(xgrid.subdiv, .data$cell_id, .data[[attrib]])
-    xgrid.subdiv <- dplyr::distinct(xgrid.subdiv, .data$cell_id, .keep_all=TRUE)
+    ## check if x is already complete 
+    xcent <- st_centroid2(x)
+    xcent.ind <- sf::st_covered_by(xcent, xgrid.subdiv)
+    xcent.ind <- sort(unlist(xcent.ind[lengths(xcent.ind)==1]))
+    xcent <- xcent[xcent.ind,]
+    if (identical(xcent.ind, seq_len(nrow(x))))
+    {
+        xgrid.subdiv[[attrib]] <- xcent[[attrib]]
+        xgrid.subdiv <- sf::st_sf(xgrid.subdiv)
+        xgrid.subdiv <- dplyr::relocate(xgrid.subdiv, dplyr::all_of(attrib), .before=1)
+        xgrid <- dplyr::arrange(xgrid.subdiv, .data$cell_id, .data[[attrib]])
+    }
+    else
+    {
+        ## assign those sub-divided cells which cover >=2 different original 
+        ## grid cells in xgrid to single value that is closest to weighted mean
+        ## search for more efficient operation than st_intersection?
+        if (verbose) cat("Start st_intersection\n") 
+        xgrid.subdiv.int <- suppressWarnings(sf::st_intersection(x, xgrid.subdiv))
+        xgrid.subdiv.int <- xgrid.subdiv.int[sf::st_is(xgrid.subdiv.int, "POLYGON"),]
+        xgrid.subdiv.int <- dplyr::mutate(xgrid.subdiv.int, area=geos::geos_area(xgrid.subdiv.int), .before=!!sfname)
+        ## remove small intersections <= 0.01 * grid cell area
+        ## as these may unduly affect the attrib weighted mean
+        ## if these intersections have attrib value=0
+        xgrid.subdiv.int <- dplyr::filter(xgrid.subdiv.int, .data$area>prod(!!cellsize)*1e-2)
+        xgrid.subdiv.int <- dplyr::arrange(xgrid.subdiv.int, dplyr::desc(.data$area*.data[[attrib]]))
+        xgrid.subdiv.int <- dplyr::group_by(xgrid.subdiv.int, .data$cell_id)
+        xgrid.subdiv.int <- dplyr::summarise(sf::st_drop_geometry(xgrid.subdiv.int), attribm=weighted.mean(.data[[attrib]], .data$area, na.rm=TRUE), .attrib=.data[[attrib]][which.min(abs(.data$attribm-.data[[attrib]]))[1]])
+        xgrid.subdiv.int <- dplyr::rename_with(xgrid.subdiv.int, function(.) attrib, ".attrib")
+        xgrid.subdiv.int$attribm <- NULL
 
-    ## combine subdivided grid cells into original grid cells
-    xgrid <- st_union_grid(xgrid.subdiv, attrib=attrib, n=nsubdiv, .f=mean)
-    xgrid <- st_add_index(xgrid)
+        ## fill in other grid cells that are not intersected 
+        xgrid.subdiv <- dplyr::right_join(xgrid.subdiv.int, xgrid.subdiv, by=c("cell_id"))
+        xgrid.subdiv <- sf::st_sf(xgrid.subdiv)
+        xgrid.subdiv <- dplyr::relocate(xgrid.subdiv, dplyr::all_of(attrib), .before=1)
+        xgrid.subdiv <- dplyr::arrange(xgrid.subdiv, .data$cell_id, .data[[attrib]])
+        if (verbose) cat("End st_intersection\n") 
+
+        ## combine subdivided grid cells into original grid cells
+        if (verbose) cat("Start st_union_grid\n")
+        xgrid <- st_union_grid(xgrid.subdiv, attrib=attrib, n=nsubdiv, .f=mean)
+        xgrid <- st_add_index(xgrid)
+        if (verbose) cat("End st_union_grid\n")
+    }
 
     ## keep track of NA attribute values
     # xgrid[["attrib_na"]] <- xgrid[[attrib]]
@@ -970,7 +990,7 @@ st_intergrid <- function(x, attrib, cellsize, verbose=FALSE)
     return(xgrid)
 }
 
-## convert raster to sf polygon grid
+## convert complete raster to sf polygon grid
 st_raster_as_grid <- function(x)
 {
     dims <- dim(x)-1
@@ -1004,7 +1024,26 @@ st_add_contour_label <- function(x, cont=c(25,50,75))
 }
 
 ## add indices, starting from SW corner, to rectangular grid
+## that it arleady sorted from SW corner to NE corner (e.g. output from st_make_grid)
 st_add_index <- function(x)
+{
+    xcrs <- sf::st_crs(x)
+    if (!is.na(sf::st_crs(x))) { if (sf::st_is_longlat(x)) sf::st_crs(x) <- NA }
+      
+    sfname <- attr(x, "sf_column")
+    xbbox <- st_bbox_segments(x)
+    h1 <- xbbox[1]; v1 <- xbbox[2]  
+    xh <- geos::geos_intersects(x, h1)
+    xv <- geos::geos_intersects(x, v1)
+    xhv <- expand.grid(cell_id2=1:sum(xh), cell_id1=1:sum(xv))
+    xgrid <- dplyr::mutate(x, cell_id=1:nrow(x), cell_id1=!!xhv[,1], cell_id2=!!xhv[,2], .before=!!sfname)
+    
+    return(xgrid) 
+}
+
+## add indices, starting from SW corner, to rectangular grid
+## for any grid
+st_add_index_unsort <- function(x)
 {
     xcrs <- sf::st_crs(x)
     if (!is.na(sf::st_crs(x)))
@@ -1014,6 +1053,7 @@ st_add_index <- function(x)
     ## centroids of first horizontal row and first vertical col
     xbbox <- st_bbox_segments(x)
     h1 <- xbbox[1]; v1 <- xbbox[2]
+
     xh.cent <- sf::st_filter(x, h1) 
     xv.cent <- sf::st_filter(x, v1)    
     xh.cent <- suppressWarnings(sf::st_centroid(xh.cent))
@@ -1021,7 +1061,6 @@ st_add_index <- function(x)
 
     sfname <- attr(x, "sf_column")
     xcent <- suppressWarnings(sf::st_centroid(x))
-
     ## compute complete aligned grid with row,col indices
     xgrid <- dplyr::mutate(x, cell_id1=sf::st_nearest_feature(xcent, xh.cent), cell_id2=sf::st_nearest_feature(xcent, xv.cent), .before=!!sfname)
     xgrid$cell_id1 <- factor(xgrid$cell_id1) 
@@ -1059,4 +1098,128 @@ st_union_grid <- function(x, attrib, n=1, .f)
     xu.attrib <- dplyr::mutate(xu.attrib, cell_id=1:nrow(xu.attrib), .before="cell_id1")
     
     return(xu.attrib)
+}
+
+## x= st_kde object
+st_maximum_attrib <- function(x, dist=1000, nshape=1, shape="circle", attrib_min, cont_start=0.25, verbose=FALSE)
+{
+    ## some defaults
+    sfname <- attr(x$sf, "sf_column")
+    attrib <- "estimate" 
+    x$grid <- st_add_index(x$grid) 
+    xorig <- x
+    cellsize <- geos::geos_length(st_bbox_segments(xorig$grid))[1:2]/c(max(xorig$grid$cell_id1), max(xorig$grid$cell_id2))
+    cellsize.ind <- ceiling(dist/cellsize)
+
+    ## sum is aggegrate statistic function
+    .f <- sum
+    shape <- match.arg(shape, c("circle", "rect"))
+    if (verbose & all(geos::geos_length(st_rectangle_segments(x$grid[1,]))>dist)) warning("dist is smaller than grid cell size so results may not be accurate", immediate.=TRUE)
+    if (missing(attrib_min)) { missing_attrib_min <- TRUE; attrib_min <- min(x$grid[[attrib]]) } else { missing_attrib_min <- FALSE; nshape <- 100 }
+    if (nshape<1) nshape <- 1
+
+    xattrib_max <- attrib_min
+    xattrib_max_prev <- 10*xattrib_max 
+    xc.list <- NULL
+    i <- 1
+    #while (((max(c(xattrib_max, xattrib_max_prev)) >= attrib_min) | (xattrib_max >= xattrib_max_prev)) & (i <= nshape))
+    while ((abs(xattrib_max-xattrib_max_prev)/xattrib_max >= 0.1 | xattrib_max >= attrib_min) & (i <= nshape))
+    {
+        ## copy cell indices from xorig to modified x
+        x$grid <- dplyr::mutate(x$grid, cell_id=xorig$grid$cell_id, cell_id1=xorig$grid$cell_id1, cell_id2=xorig$grid$cell_id2, .before=!!sfname)
+        xc <- .st_maximum_attrib(x=x, dist=dist, nshape=1, .f=.f, cont_start=cont_start, cont_step=0.25, cellsize.ind=cellsize.ind, align_grid=TRUE)
+        xc <- dplyr::arrange(xc, dplyr::desc(.data[[attrib]]))
+        ## keep only mutually exclusive circles
+        if (nrow(xc)>1) xc <- xc[sort(unique(sapply(sf::st_intersects(xc), min))),]
+        #if (shape=="square") xc <- sf::st_minimum_rotated_rectangle(xc)
+        xc <- sf::st_sf(xc)
+        xattrib_max_prev <- xattrib_max
+
+        ## update sum of attrib
+        xc[[attrib]] <- sapply(st_filter_approx(x=xorig, y=xc, ind=cellsize.ind), function(.) do.call(.f, list(.[[attrib]])))
+        xattrib_max <- max(xc[[attrib]])
+        xc.list <- c(xc.list, list(xc))  
+        if (verbose) cat("i =", i, ", max", attrib, "=", xattrib_max, "\n") 
+        
+        ## update intersection of (x$grid, xc) attrib = 0
+        ## approx intersection based on cell indices is faster than sf::st_intersection           
+        for (j in 1:nrow(xc))
+            x$grid[x$grid$cell_id1 %in% (xc$cell_id1[j] + (-cellsize.ind[1]:cellsize.ind[1])) & x$grid$cell_id2 %in% (xc$cell_id2[j] + (-cellsize.ind[2]:cellsize.ind[2])),][[attrib]] <- 0
+        
+        ## update st_as_kde
+        if (all(zapsmall(x$grid$estimate)==0)) break
+        i <- i+1
+        x <- st_as_kde(x$grid, cont=1)   
+    }
+    xc <- do.call(rbind, xc.list)
+    xc <- sf::st_sf(xc)
+
+    if (shape=="rect")
+    {
+        ## replace circle polygon
+        xc.geom <- lapply(1:nrow(xc), function(.) sf::st_as_sfc(sf::st_bbox(xc[.,])))
+        sf::st_geometry(xc) <- sf::st_as_sfc(do.call(rbind, xc.geom), crs=sf::st_crs(x$sf))
+    }
+    else 
+    {
+        ## recalculate attrib summaries for circle polygons 
+        xg <- st_filter_approx(x=xorig, y=xc, ind=cellsize.ind)
+        xg <- lapply(1:nrow(xc), function(.) suppressWarnings(sf::st_intersection(xg[[.]], xc[.,])))
+        xc[[attrib]] <- sapply(xg, function(.) do.call(.f, list(.[[attrib]])))
+    }
+    
+    xc <- dplyr::arrange(xc, dplyr::desc(.data[[attrib]]))
+    if (missing_attrib_min) xc <- xc[1:nshape,]
+    else xc <- xc[xc[[attrib]] >= attrib_min,]
+
+    return(xc)
+}
+
+## x= sf_ks object with st_add_index applied to x$grid
+## y = sf object with st_add_index applied
+st_filter_approx <- function(x, y, ind)
+{ 
+    lapply(1:nrow(y), function(.) 
+    { 
+        x$grid[x$grid$cell_id1 %in% (y[.,]$cell_id1 + c(-ind[1]:ind[1])) & x$grid$cell_id2 %in% (y[.,]$cell_id2 + c(-ind[2]:ind[2])),]
+    })
+}
+
+.st_maximum_attrib <- function(x, dist, nshape, .f, cont_start, cont_step, cellsize.ind, align_grid)
+{
+    sfname <- attr(x$sf, "sf_column")
+    attrib <- "estimate" 
+
+    ct <- cont_start
+    xc <- st_get_contour(x, cont=ct)
+    xc <- sf::st_cast(sf::st_cast(xc, to="MULTIPOLYGON"), to="POLYGON", warn=FALSE)
+    xc <- sf::st_minimum_bounding_circle(xc)
+    xc$radius_mbc <- sqrt(geos::geos_area(xc)/pi)
+  
+    ## search by increasing contour level 
+    while (ct < 100 & sum(xc$radius_mbc<dist)<nshape) 
+    {
+        xc <- st_get_contour(x, cont=ct)
+        xc <- sf::st_cast(sf::st_cast(xc, to="MULTIPOLYGON"), to="POLYGON", warn=FALSE)
+        xc <- sf::st_minimum_bounding_circle(xc)
+        xc$radius_mbc <- sqrt(geos::geos_area(xc)/pi)
+        ct <- ct + cont_step
+    } 
+    xc <- dplyr::relocate(xc, "radius_mbc", .before=!!sfname)
+    
+    ## reduce grid to speed up st_filter
+    if (is.factor(xc[[attrib]])) att <- min(unfactor(xc[[attrib]])) else att <- min(xc[[attrib]])
+    xg <- x$grid[x$grid[[attrib]]>0.2*att,]
+
+    ## align centre of circle to grid cell centroid
+    xc <- st_centroid2(xc)
+    if (align_grid) xc <- st_centroid2(sf::st_filter(xg, xc))
+    xc <- sf::st_buffer(xc, dist=dist, nQuadSegs=60)
+
+    ## compute approx attrib summary
+    xc[[attrib]] <- sapply(st_filter_approx(x=x, y=xc, ind=cellsize.ind), function(.) do.call(.f, list(.[[attrib]])))
+    xc <- dplyr::mutate(xc, radius=!!dist, .before=!!sfname)
+    xc <- dplyr::arrange(xc, dplyr::desc(.data[[attrib]]))
+    
+    return(xc)
 }

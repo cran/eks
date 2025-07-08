@@ -44,9 +44,10 @@ st_kdde(x, deriv_order=1, ...)
 
     For details of the computation of the kernel density derivative estimate and the bandwidth selector procedure, see \code{?ks::kdde}.
 
-    In \code{geom_contour_filled_ks} and \code{st_get_contour}, then the 100\% contour 
-    is set to the bounding box of the data, and it is plotted in a transparent (if \code{data} is not missing) or neutral colour (if \code{data} is missing). It is difficult to avoid displaying the boundary of this bounding box in \code{geom_contour_filled_ks}, though for \code{geom_sf}, using \code{aes(linetype=contline)} avoids displaying the boundary box.     
-    If \code{data} is not missing, it is transparent. See \code{\link[=st_kde]{*_kde}} for details on the aesthetics based on \code{contperc}, \code{contregion}, \code{estimate}.
+    In \code{geom_contour_filled_ks} and \code{st_get_contour}, the 100\% contour 
+    is set to the bounding box of the data, and it is plotted in a transparent (if \code{data} is not missing) or neutral colour (if \code{data} is missing). For \code{geom_contour_filled_ks}, it is difficult to avoid displaying the boundary of this bounding box , though for \code{geom_sf}, using \code{aes(linetype=contline)} achieves this.     
+    
+    See \code{\link[=st_kde]{*_kde}} for details on the aesthetics based on \code{contperc}, \code{contregion}, \code{estimate}.
 
 
 }
@@ -86,7 +87,7 @@ gt2 + geom_contour_filled_ks(data=t22, aes(fill=after_stat(contregion),
     linetype=after_stat(contline)), colour=1, breaks=tb22)
 ## contour lines with density derivative labels with breaks
 gt2 + geom_contour_ks(data=t22, aes(colour=after_stat(estimate)), 
-     breaks=tb22) 
+    breaks=tb22) 
 
 ## geospatial density derivative estimate
 data(wa)
@@ -114,12 +115,12 @@ gs <- ggplot(s1) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map()
 ## filled contours with density derivative "percentage" labels w/o breaks
 ## aes(linetype=contline) suppresses displaying bounding box 
 gs + geom_sf(data=s1_cont2, aes(fill=contregion, linetype=contline), 
-    colour=1) + glim 
+    colour=1) + scale_linetype_manual(values=c(0,1)) + glim 
    
 ## facet wrapped geom_sf plot for each partial derivative
 ## filled contours with density derivative labels with breaks
-gs + geom_sf(data=s1_cont1, aes(fill=contregion, linetype=contline)) + 
-    glim + facet_wrap(~deriv_group)}
+gs + geom_sf(data=s1_cont1, aes(fill=contregion, linetype=contline)) +
+    scale_linetype_manual(values=c(0,1)) + glim + facet_wrap(~deriv_group)}
 }
 
 \keyword{smooth}

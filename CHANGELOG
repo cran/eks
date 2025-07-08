@@ -1,5 +1,15 @@
 Change log file for eks
 
+1.1.1
+-Added more efficient st_centroid2() based on geos::geos_centroid.
+-Improved speed of st_intergrid() by checking for complete regular grid
+ and other improvements.
+-Added cont parameter to st_as_kde() to compute fewer contours.
+-Added ... argument to ggplot_add.scale_rem() as per  
+ https://github.com/tidyverse/ggplot2/issues/6515.
+-Changed contline output in st_kdde() from NA to 0 to be more compatible 
+ with aes(linetype=contline).  
+
 1.1.0
 -Fixed bugs in geom_contour_ks(), geom_filled_contour_ks().
 -Added quasi KDE function tidy_as_kde(), st_as_kde().

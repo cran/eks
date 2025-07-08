@@ -902,17 +902,18 @@ tidy_intergrid <- function(data, attrib, cellsize, verbose=FALSE)
     {    
         if (missing(attrib)) attrib <- 1
         if (is.numeric(attrib)) attrib <- names(data)[attrib]
-       
         ## add grid cell indices if missing
         if (!all(names(data) %in% c("cell_id", "cell_id1", "cell_id2")))
             data <- st_add_index(data)
 
         ## replace polygon by centroids 
-        xgrid <- suppressWarnings(st_add_coordinates(sf::st_centroid(data)))
+        #xgrid <- suppressWarnings(sf::st_centroid(data))
+        #xgrid <- dplyr::distinct(xgrid, .data$geometry, .keep_all=TRUE)
+        xgrid <- st_centroid2(data)
+        xgrid <- st_add_coordinates(xgrid) 
         xgrid <- dplyr::arrange(xgrid, .data$cell_id2, .data$cell_id1)
         rownames(xgrid) <- NULL
-        xgrid <- dplyr::distinct(xgrid, .data$geometry, .keep_all=TRUE)
-       
+        
         ## create tidy data frame with lon, lat + attrib
         eval.points <- sf::st_drop_geometry(xgrid[,c("lon", "lat")])
         eval.points <- signif(eval.points, 10)

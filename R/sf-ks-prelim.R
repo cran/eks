@@ -102,7 +102,7 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
         if (missing(lty)) 
         { 
             if (oct %in% "kdde") 
-            { lty <- as.numeric(y$contline); lty[is.na(lty)] <- 0 }
+            { lty <- as.numeric(levels(y$contline))[y$contline]; lty[is.na(lty)] <- 0 }
             else lty <- rep(1, nrow(yd))
             if (any(names(yd) %in% "estimate")) lty[y$estimate==0] <- 0 
         }
@@ -694,3 +694,22 @@ write_temp <- function(x, layer, dsn)
     sf::write_sf(x, dsn=dsn, layer=layer)
 }
 
+st_diameter <- function(x)
+{
+    xch <- sf::st_convex_hull(x)
+    xch <- sf::st_geometry(xch)
+    diam <- sapply(1:length(xch), function (.) 
+    {
+        y <- sf::st_cast(sf::st_cast(xch[.], to="MULTIPOINT", warn=FALSE), to="POINT", warn=FALSE)
+        diam <- max(as.numeric(sf::st_distance(y)))
+    })
+    
+    return(diam)
+}
+
+## more efficient centroid than sf::st_centroid
+st_centroid2 <- function(x)
+{
+    sf::st_geometry(x) <- sf::st_as_sfc(geos::geos_centroid(x))
+    return(x)
+}

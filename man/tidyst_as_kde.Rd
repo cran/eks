@@ -9,7 +9,7 @@
 
 \usage{
 tidy_as_kde(data, density, ...)
-st_as_kde(x, attrib=1, density, ...)
+st_as_kde(x, attrib=1, density, cont, ...)
 }
 
 \arguments{
@@ -17,6 +17,7 @@ st_as_kde(x, attrib=1, density, ...)
     \item{x}{sf object, where \code{attrib} is estimate value and estimation grid is rectangle polygon geometry}
     \item{attrib}{name or position of estimate variable. Default is 1.}
     \item{density}{flag to compute bona fide density. Default is TRUE.}
+    \item{cont}{vector of contour probabilities. If missing, the default is seq(5, 95, by=5). Usually not required to be set explicitly by the user.}
     \item{...}{other parameters}
 }
 
