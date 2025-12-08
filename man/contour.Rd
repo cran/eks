@@ -1,4 +1,5 @@
 \name{contour}
+\alias{add_contour_breaks}
 \alias{contour_breaks}
 \alias{contourLevels.tidy_ks}
 \alias{contourLevels.sf_ks}
@@ -14,6 +15,7 @@
 \method{contourLevels}{sf_ks}(x, ..., cont=c(25,50,75))
 contour_breaks(data, cont=c(25,50,75), n=3, group=FALSE, type="density")
 st_get_contour(x, cont=c(25,50,75), breaks, disjoint=TRUE, digits)
+add_contour_breaks(x, breaks, digits, ...)
 }
 
 \arguments{
@@ -24,8 +26,8 @@ st_get_contour(x, cont=c(25,50,75), breaks, disjoint=TRUE, digits)
     \item{group}{flag to compute contour levels per group. Default is FALSE.}
     \item{breaks}{tibble or vector of contour levels (e.g. output from \code{contour_breaks})}
     \item{disjoint}{flag to compute disjoint contours. Default is TRUE.}
-    \item{digits}{number of significant digits in output labels. If missing, default is 4.} 
-    \item{...}{other parameters (not implemented)}    
+    \item{digits}{number of significant digits in output labels. If missing, default is 4.}  
+    \item{...}{parameters to \code{contour_breaks} (only for \code{add_contour_breaks})}    
 }
 
 \value{
@@ -54,6 +56,9 @@ data(crabs, package="MASS")
 crabs2 <- dplyr::select(crabs, FL, CW)
 t1 <- tidy_kde(crabs2)
 ggplot(t1, aes(x=FL, y=CW)) + geom_contour_filled_ks()
+
+## add density contour region labels  
+add_contour_breaks(t1, group=TRUE)
 
 \donttest{## geospatial data
 crabs2s <- sf::st_as_sf(crabs2, coords=c("FL","CW"))

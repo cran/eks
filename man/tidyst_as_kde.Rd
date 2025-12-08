@@ -1,6 +1,7 @@
 \name{tidyst_as_kde}
 \alias{tidy_as_kde}
 \alias{st_as_kde}
+
 \title{Tidy and geospatial quasi kernel density estimates from gridded data}
 
 \description{

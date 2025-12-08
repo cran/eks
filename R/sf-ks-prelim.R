@@ -76,7 +76,7 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
     }
 
     if (g=="sf")
-	{       
+	{   
         if (oct %in% c("kdr", "kms"))
         {
             yd <- dplyr::select(y, dplyr::all_of("label"))
@@ -143,7 +143,7 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
     ## mapsf legends don't allow for line types in legend boxes so 
     ## st_ksupp plots aren't well supported
     if (legend)
-    {
+    {   
         if (!requireNamespace("mapsf", quietly=TRUE)) stop("Install the mapsf package as it is required.", call.=FALSE)       
         forms <- list(...)
         forms <- forms[names(forms) %in% c("pos", "val", "pal", "title", "title_cex", "val_cex", "col_na", "no_data", "no_data_txt", "frame", "border", "bg", "fg", "cex")]
@@ -203,10 +203,11 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
         }
         else if (!missing(col))
         {
-            if (oct %in% "kdr") do.call(mapsf::mf_legend, args=c(list(type="symb", val=levels(y$label), pal=col,  pos=pos, title=gu.title, cex=3, pch="-"), forms[!(names(forms) %in% c("cex","pch"))]))
-            else if (oct %in% "kfs") do.call(mapsf::mf_legend, args=c(list(type="typo", val=y$label[1], pos=pos, pal=col, title=gu.title), forms))  
+            ## bug in mapsf::mf_legend that doesn't allow single values in val
+            if (oct %in% "kdr") do.call(mapsf::mf_legend, args=c(list(type="symb", val=c(levels(y$label), ""), pal=c(col,NA),  pos=pos, title=gu.title, cex=3, pch="-"), forms[!(names(forms) %in% c("cex","pch"))])) 
+            else if (oct %in% "kfs") do.call(mapsf::mf_legend, args=c(list(type="typo", val=c(y$label[1],""), pos=pos, pal=c(col,NA), box_border=c("#333333",NA), title=gu.title), forms))  
             ## mapsf::mf_legend doesn't accept lty argument
-            else if (oct %in% "ksupp") do.call(mapsf::mf_legend, args=c(list(type="typo", val=contlabel, pos=pos, pal=col, title=gu.title), forms))
+            else if (oct %in% "ksupp") do.call(mapsf::mf_legend, args=c(list(type="typo", val=c(contlabel,""), pos=pos, pal=c(col,NA), box_border=c("#333333",NA), title=gu.title), forms))
             else if (oct %in% "kda")
             {
                 gv <- levels(dplyr::pull(sf::st_drop_geometry(y), dplyr::all_of(dplyr::group_vars(y))))

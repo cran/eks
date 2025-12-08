@@ -49,17 +49,20 @@ create_label <- function(x, digits, add_contperc, is_kdde, is_filled_contour=TRU
     else 
     {
         x$contperc <- NA  
-        x$contperc <- factor(x$contper)
+        x$contperc <- factor(x$contperc)
     }
     
     return(x)
 }
 
-## mimicks stat_contour_filled_ks output
-add_contour_breaks <- function(x, breaks, digits=4, ...)
+## mimics stat_contour_filled_ks output for x = tidy_k* output
+add_contour_breaks <- function(x, breaks, digits, ...)
 {
-    if (missing(breaks)) breaks <- contour_breaks(data=x, ...)
-    breaks2 <- sort(unique(c(breaks, max(x$estimate))))
+    if (missing(digits)) digits <- 4
+    if (missing(breaks)) breaks <- contour_breaks(data=x, ...)$breaks
+    if (min(x$estimate)>=0) breaks2 <- sort(unique(c(0, breaks, max(x$estimate))))
+    else breaks2 <- sort(unique(c(breaks, max(x$estimate))))
+
     xnames <- colnames(x)
     x$.id <- 1:nrow(x)
     x.ord <- order(x$estimate)
@@ -73,6 +76,7 @@ add_contour_breaks <- function(x, breaks, digits=4, ...)
     xlab <- xlab[order(xlab$.id),]
     xlab$estimate <- ordered(xlab$estimate)
     xlab <- xlab[c(xnames, "contregion")]
+    xlab <- dplyr::relocate(xlab, "contregion", .after="estimate")
    
     return(xlab)
 }

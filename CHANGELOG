@@ -1,5 +1,9 @@
 Change log file for eks
 
+1.1.2
+-Added add_contour_breaks() for output from tidy_k*.
+-Modified some mapsf::mf_legends to avoid bugs, and moved mapsf to Suggests.
+
 1.1.1
 -Added more efficient st_centroid2() based on geos::geos_centroid.
 -Improved speed of st_intergrid() by checking for complete regular grid
