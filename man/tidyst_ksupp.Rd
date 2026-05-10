@@ -56,7 +56,7 @@ plot(s1, cont=c(25,50,75,97.5), add=TRUE, border="grey50")
 plot(s2, add=TRUE, lty=2, pos="bottom")
 
 ## geom_sf plot
-ggplot(s1) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map() + 
+ggplot(s1) + geom_sf(data=wa, fill=NA) + theme_sf() + 
     scale_linetype_manual(values=c("dashed"), name="Support\nconvex hull") + 
     geom_sf(data=st_get_contour(s1, cont=c(25,50,75,97.5)), aes(fill=contperc)) +
     geom_sf(data=st_get_contour(s2), aes(linetype=contperc), fill=NA, col=1) + 

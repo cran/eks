@@ -140,8 +140,6 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
     }
 
     ## add legend
-    ## mapsf legends don't allow for line types in legend boxes so 
-    ## st_ksupp plots aren't well supported
     if (legend)
     {   
         if (!requireNamespace("mapsf", quietly=TRUE)) stop("Install the mapsf package as it is required.", call.=FALSE)       
@@ -153,6 +151,7 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
         if (is.list(gu)) gu <- list(guides=unlist(lapply(gu, function(.) unlist(.[["guides"]]))))
         if (missing(legend.title)) gu.title <- gu$guides$fill$params$title
         else gu.title <- legend.title
+        
         if (g=="sf")
         {
             if (oct %in% c("kdde", "kdr")) 
@@ -167,13 +166,13 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
                 nc <- length(contlabel)
             }
         }
-        
+
         if (g=="grid")
         {
             if (oct %in% "kda")
             {
                 gv <- levels(dplyr::pull(sf::st_drop_geometry(y), .data$label))
-                do.call(mapsf::mf_legend, args=c(list(type="typo", val=gv, pal=pal(length(gv)), pos=pos, title=gu.title), forms))
+                do.call(mapsf::mf_legend, args=c(list(type="typo", val=gv, pal=pal(length(gv)), pos=pos, title=gu.title, box_border=NA), forms))
             }
             else
             {
@@ -191,6 +190,12 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
                 ng <- length(gv)
                 do.call(mapsf::mf_legend, args=c(list(type="symb", val=gv, pal=unique(forms$border), pos=pos, title=gu.title, cex=rep(3,ng), pch=rep("-", ng)), forms[!(names(forms) %in% c("cex","pch"))]))
             }
+            else if (oct %in% "kde.loctest")
+            {
+                gv <- levels(dplyr::pull(sf::st_drop_geometry(y), .data$label))
+                ind <- order(gv, decreasing=TRUE)
+                do.call(mapsf::mf_legend, args=c(list(type="symb", val=gv[ind], pal=rev(border), pos=pos, title=gu.title, cex=3, pch="-"), forms[!(names(forms) %in% c("cex","pch"))]))
+            }
             else 
             {
                 if (!all(is.na(forms$border)) & pal.missing) 
@@ -198,7 +203,8 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
                     forms <- forms[!(names(forms) %in% c("cex","pch"))]
                     do.call(mapsf::mf_legend, args=c(list(type="symb", val=contlabel, pal=rev(forms$border), pos=pos, title=gu.title, cex=3, pch="-"), forms[!(names(forms) %in% c("cex","pch"))]))
                 }
-                else do.call(mapsf::mf_legend, args=c(list(type="typo", val=contlabel, pal=rev(pal(nc)), pos=pos, title=gu.title), forms)) 
+                else 
+                    do.call(mapsf::mf_legend, args=c(list(type="typo", val=contlabel, pal=rev(pal(nc)), pos=pos, title=gu.title), forms)) 
             }
         }
         else if (!missing(col))
@@ -213,6 +219,12 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
                 gv <- levels(dplyr::pull(sf::st_drop_geometry(y), dplyr::all_of(dplyr::group_vars(y))))
                 ng <- length(gv)
                 do.call(mapsf::mf_legend, args=c(list(type="typo", val=gv, pal=pal(ng), pos=pos, title=gu.title), forms))
+            }
+            else if (oct %in% "kde.loctest" & all(is.na(col)))
+            {
+                gv <- levels(dplyr::pull(sf::st_drop_geometry(y), .data$label))
+                ind <- order(gv, decreasing=TRUE)
+                do.call(mapsf::mf_legend, args=c(list(type="typo", val=gv[ind], pos=pos, pal=rep(NA,length(border)), box_border=rev(border), title=gu.title), forms))
             }
             else 
             {
@@ -235,6 +247,7 @@ plot_sf_ks <- function(x, which_geometry="sf", cont=c(25,50,75), abs_cont=breaks
             {
                 gv <- levels(dplyr::pull(sf::st_drop_geometry(y), .data$label))
                 ind <- order(gv, decreasing=TRUE)
+
                 do.call(mapsf::mf_legend, args=c(list(type="typo", val=gv[ind], pal=pal(length(gv))[ind], pos=pos, title=gu.title), forms))
             }
             else 
@@ -639,29 +652,6 @@ st_bbox_segments <- function(x)
     return(c(h1, v1, h2, v2))
 }
 
-## returns segments of rectangle
-## first value = len of "horizontal" side (smallest Hausdorff dist to h1 of st_bbox_segments) 
-## second value = len of "vertical" side (smallest Hausdorff dist to v1 of st_bbox_segments) 
-st_rectangle_segments <- function(x)
-{
-    sfname <- attr(x, "sf_column")
-    xbbox.seg <- st_bbox_segments(x)
-    xseg <- suppressWarnings(sf::st_collection_extract(lwgeom::st_split(sf::st_cast(x[1,], to="LINESTRING"), sf::st_cast(x[1,], to="POINT", warn=FALSE)), "LINESTRING"))
-    xseg.dist1 <- sf::st_distance(xseg, xbbox.seg, which="Hausdorff")
-    xseg.dist2 <- sf::st_distance(xseg, xbbox.seg)
-    units(xseg.dist1) <- units(xseg.dist2) <- NULL
-    xseg.dist <- xseg.dist1 + xseg.dist2
-    xseg.ind <- apply(xseg.dist, 2, which.min)
-    if (any(class(xseg) %in% "sfc"))
-        xseg <- sf::st_sf(.side=xseg.ind, geometry=xseg)
-    else 
-        xseg <- dplyr::mutate(xseg, .side=!!xseg.ind, .before=!!sfname)
-    xseg <- dplyr::arrange(xseg, .data$.side)
-    xseg <- sf::st_sf(xseg)
-
-    return (xseg)
-}
-
 ## add "%" suffix - deprecated but kept for backwards compatibility 
 label_percent <- function(y)
 {
@@ -708,9 +698,10 @@ st_diameter <- function(x)
     return(diam)
 }
 
-## more efficient centroid than sf::st_centroid
+## more efficient centroid than sf::st_centroid?
 st_centroid2 <- function(x)
 {
-    sf::st_geometry(x) <- sf::st_as_sfc(geos::geos_centroid(x))
+    #sf::st_geometry(x) <- sf::st_as_sfc(geos::geos_centroid(x))
+    sf::st_geometry(x) <- sf::st_geometry(sf::st_centroid(sf::st_geometry(x)))
     return(x)
 }

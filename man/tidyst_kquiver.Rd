@@ -60,7 +60,7 @@ plot(s1, add=TRUE, alpha=0.5, border="grey50")
 plot(s3$tidy_ks$ks[[1]], thin=5, add=TRUE, display="quiver")
 
 ## geom_sf plot 
-gs <- ggplot(s1) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map()
+gs <- ggplot(s1) + geom_sf(data=wa, fill=NA) + theme_sf()
 gs + geom_sf(data=st_get_contour(s1), aes(fill=contperc), alpha=0.5) +
    ggquiver::geom_quiver(data=s3$sf, aes(x=lon, y=lat, u=u, v=v), colour=1) + 
     coord_sf(xlim=xlim, ylim=ylim)}

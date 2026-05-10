@@ -57,7 +57,7 @@ plot(sf::st_geometry(hakeoides), add=TRUE, col=3, pch=16, cex=0.5)
 plot(s1, add=TRUE)
 
 ## geom_sf plot
-gs <- ggplot(s1) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map()
+gs <- ggplot(s1) + geom_sf(data=wa, fill=NA) + theme_sf()
 gs + geom_sf(data=hakeoides, colour=3, alpha=0.5) +
     geom_sf(data=s1$sf, aes(colour=contregion)) + 
     coord_sf(xlim=xlim, ylim=ylim) 

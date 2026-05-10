@@ -60,7 +60,7 @@ plot(paradoxa_bbox, add=TRUE, lty=3, lwd=2)
 plot(s1, add=TRUE)
 
 ## geom_sf plot
-gs1 <- ggplot(s1) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map() 
+gs1 <- ggplot(s1) + geom_sf(data=wa, fill=NA) + theme_sf() 
 gs1 + geom_sf(data=paradoxa_bbox, linewidth=1.2, linetype="dotted", fill=NA) +
     geom_sf(data=st_get_contour(s1), aes(fill=contperc)) +
     coord_sf(xlim=xlim, ylim=ylim)}

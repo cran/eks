@@ -532,7 +532,6 @@ tidy_kdr <- function(data, dTolerance, ...)
     gg2 <- dplyr::rename(gg2, x="X", y="Y")
     gg <- dplyr::mutate(gg2, ks=ifelse(dplyr::row_number()>1, d, .data$ks))
     if (rename) gg <- rename_ks(data=data, gg=gg, d=d)
-    #gg <- dplyr::mutate(gg, estimate=factor(.data$estimate), tks="kdr", label="Density ridge", .before=dplyr::last_col())
     gg <- dplyr::mutate(gg, estimate=factor(.data$estimate), tks="kdr", label=factor(labels), .before=dplyr::last_col())
     gg <- dplyr::group_by(gg, dplyr::across("segment"), .add=TRUE)
     gg <- move_group_vars(gg, data)
@@ -588,7 +587,7 @@ tidy_kdr_segment <- function(data, dTolerance, coords=1:2, ...)
         gg3 <- dplyr::group_modify(gg3, .f=~sf::st_as_sf(.x, coords=c("x","y")))
         gg3 <- sf::st_sf(gg3)
         gg3 <- dplyr::group_modify(gg3, .f=~dplyr::tibble(geom1=head(.x$geometry, n=-1), geom2=tail(.x$geometry, n=-1)))
-        gg3 <- dplyr::summarise(gg3, dist=median(geos::geos_distance(.data$geom1, .data$geom2)))
+        gg3 <- dplyr::summarise(gg3, dist=median(as.numeric(sf::st_distance(.data$geom1, .data$geom2, by_element=TRUE))))
         dTolerance <- median(gg3$dist)
         dTolerance <- min(10^(round(log10(mean(dTolerance))-1,0)), 10)
     }
@@ -791,6 +790,38 @@ tidy_kcurv <- function(data, ...) { .tidy_kcurv(data, ...) }
 
     return(gg)
 }
+
+## tidy version of ks:::histde
+tidy_histde <- function(data, ...) { .tidy_histde(data, ...) }
+
+.tidy_histde <- function(data, rename=TRUE, ...)
+{
+    if (is.vector(data)) data <- data.frame(data)
+
+    ## convert to tidy
+    compute.tidy.local <- function(y, d)
+    {
+        x <- dplyr::pull(y, "ks")[[1]]
+        x$eval.points <- tail(x$eval.points, n=-1)
+        fhat.tidy <- dplyr::mutate(compute.tidy(x=x, d=d, tidy=FALSE))
+    
+        return(fhat.tidy)
+    }
+
+    ## compute grouped data frame of kernel estimate
+    args_ks <- list(...)
+    vars <- setdiff(names(data), dplyr::groups(data))
+    d <- ncol(dplyr::select(dplyr::ungroup(data), dplyr::all_of(vars)))
+    gg <- dplyr::group_modify(data, ~dplyr::tibble(ks=list(compute.ks(y=.x, args_ks=args_ks, fun_ks="histde"))))
+    gg <- dplyr::group_modify(gg, ~compute.tidy.local(y=.x, d=d))
+    if (rename) gg <- rename_ks(data=data, gg=gg, d=d)
+    gg <- dplyr::mutate(gg, tks="histde", label="Hist", .before=dplyr::last_col())
+    gg <- move_group_vars(gg, data)
+    gg <- as_tidy_ks(gg)
+
+    return(gg)
+}
+
 
 ## tidy version of ks:::as.kde
 ## data = estimation grid + list of evaluation points

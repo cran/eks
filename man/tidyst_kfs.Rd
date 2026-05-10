@@ -43,7 +43,6 @@ t2 <- tidy_kfs(hsct12)
 gt <- ggplot(t2, aes(x=PE.Ly65Mac1, y=APC.CD45.2)) + 
     geom_contour_ks(data=t1, colour="grey50", cont=seq(10,90,by=10)) 
 gt + geom_contour_filled_ks(aes(fill=after_stat(contregion)), colour=1) 
-gt + geom_contour_ks(aes(colour=after_stat(contregion))) 
 
 ## geospatial significant curvature regions
 data(wa)
@@ -57,7 +56,7 @@ plot(wa, xlim=xlim, ylim=ylim)
 plot(s1, add=TRUE)
 
 ## geom_sf plot
-gs <- ggplot(s1) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map() 
+gs <- ggplot(s1) + geom_sf(data=wa, fill=NA) + theme_sf() 
 gs + geom_sf(data=st_get_contour(s1), aes(fill=contregion)) +
     coord_sf(xlim=xlim, ylim=ylim)}
 }

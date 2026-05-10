@@ -69,7 +69,7 @@ add_contour_breaks <- function(x, breaks, digits, ...)
 
     xlab <- x[x.ord,]
     xlab$estimate <- cut(x[x.ord,]$estimate, breaks2, labels=head(round_signif(breaks2, digits=digits), n=-1), digits=digits, include.lowest=TRUE)
-    xlab$estimate_high <- cut(x[x.ord,]$estimate, breaks2, labels=tail(round_signif(breaks2), n=-1), digits=digits, include.lowest=TRUE)
+    xlab$estimate_high <- cut(x[x.ord,]$estimate, breaks2, labels=tail(round_signif(breaks2,  digits=digits), n=-1), digits=digits, include.lowest=TRUE)
     xlab$estimate_high <- unfactor(xlab$estimate_high)
     xlab$contlabel <- xlab$estimate <- unfactor(xlab$estimate)
     xlab <- create_label(xlab, digits=digits, add_contperc=FALSE, is_kdde=TRUE, is_filled_contour=TRUE)
@@ -386,7 +386,7 @@ scale_color_remove <- scale_colour_remove <- function() scale_remove("colour")
 scale_color_continuous_remove <- scale_colour_continuous_remove <- function() scale_remove("colour", "continuous")
 scale_color_discrete_remove <- scale_colour_discrete_remove <- function() scale_remove("colour", "discrete")
 
-## 
+## asymmetric scale
 scale_asymmetric <- function(object, breaks, transp_neutral)
 {
     if (missing(object))

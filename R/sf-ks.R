@@ -907,25 +907,26 @@ st_intergrid <- function(x, attrib, cellsize, verbose=FALSE)
     ## default grid cell size - based on grid cell with mean area 
     if (missing(cellsize))
     {
-        xarea <- geos::geos_area(x)
-        xarea.mn <- mean(xarea, na.rm=TRUE)
-        xseg1 <- st_rectangle_segments(x[which.min(abs(xarea.mn-xarea)),])
-        cellsize.default <- geos::geos_length(xseg1)[1:2]
-        cellsize <- signif(cellsize.default,3)
+        stop("Missing cellsize not supported.")
+        # xarea <- as.numeric(sf::st_area(x)) #geos::geos_area(x)
+        # xarea.mn <- mean(xarea, na.rm=TRUE)
+        # xseg1 <- st_rectangle_segments(x[which.min(abs(xarea.mn-xarea)),])
+        # cellsize.default <- as.numeric(sf::st_length(x))[1:2] #geos::geos_length(xseg1)[1:2]
+        # cellsize <- signif(cellsize.default,3)
     }
     else if (!missing(cellsize)) { if (length(cellsize)<2) cellsize <- rep(cellsize, times=2)[1:2] }
   
     ## create bounding box which fits exactly ncell gridcells of dimension cellsize
     xbbox <- sf::st_as_sfc(sf::st_bbox(x))
     xbbox.seg <- st_bbox_segments(x)
-    ncell <- round(geos::geos_length(xbbox.seg)[1:2]/cellsize)
+    ncell <- round(as.numeric(sf::st_length(xbbox.seg))[1:2]/cellsize) #round(geos::geos_length(xbbox.seg)[1:2]/cellsize)
     xgrid.bbox <- sf::st_bbox(x)
     xgrid.bbox[3:4] <- xgrid.bbox[1:2] + ncell*cellsize
     xgrid.bbox <- sf::st_as_sfc(xgrid.bbox)
     sf::st_crs(xgrid.bbox) <- sf::st_crs(x)
     
     ## for grid cells with varying areas, subdivide grid cells before interpolation  
-    xarea <- geos::geos_area(x)
+    xarea <- as.numeric(sf::st_area(x)) #geos::geos_area(x)
     if (verbose) cat("Start st_make_grid\n")    
     nsubdiv <- ifelse(all(abs(xarea - mean(xarea)) <= 0.1*mean(xarea)), 1, 2) 
     xgrid.subdiv <- sf::st_sf(geometry=sf::st_make_grid(xgrid.bbox, cellsize=cellsize/nsubdiv, crs=sf::st_crs(x), square=TRUE))
@@ -953,7 +954,8 @@ st_intergrid <- function(x, attrib, cellsize, verbose=FALSE)
         if (verbose) cat("Start st_intersection\n") 
         xgrid.subdiv.int <- suppressWarnings(sf::st_intersection(x, xgrid.subdiv))
         xgrid.subdiv.int <- xgrid.subdiv.int[sf::st_is(xgrid.subdiv.int, "POLYGON"),]
-        xgrid.subdiv.int <- dplyr::mutate(xgrid.subdiv.int, area=geos::geos_area(xgrid.subdiv.int), .before=!!sfname)
+        xgrid.subdiv.int <- dplyr::mutate(xgrid.subdiv.int, area=as.numeric(sf::st_area(xgrid.subdiv.int)), .before=!!sfname)
+        #xgrid.subdiv.int <- dplyr::mutate(xgrid.subdiv.int, area=geos::geos_area(xgrid.subdiv.int), .before=!!sfname)
         ## remove small intersections <= 0.01 * grid cell area
         ## as these may unduly affect the attrib weighted mean
         ## if these intersections have attrib value=0
@@ -1024,7 +1026,7 @@ st_add_contour_label <- function(x, cont=c(25,50,75))
 }
 
 ## add indices, starting from SW corner, to rectangular grid
-## that it arleady sorted from SW corner to NE corner (e.g. output from st_make_grid)
+## that it already sorted from SW corner to NE corner (e.g. output from st_make_grid)
 st_add_index <- function(x)
 {
     xcrs <- sf::st_crs(x)
@@ -1033,8 +1035,10 @@ st_add_index <- function(x)
     sfname <- attr(x, "sf_column")
     xbbox <- st_bbox_segments(x)
     h1 <- xbbox[1]; v1 <- xbbox[2]  
-    xh <- geos::geos_intersects(x, h1)
-    xv <- geos::geos_intersects(x, v1)
+    #xh <- geos::geos_intersects(x, h1)
+    #xv <- geos::geos_intersects(x, v1)
+    xh <- as.vector(sf::st_intersects(sf::st_geometry(x), sf::st_geometry(h1), sparse=FALSE))
+    xv <- as.vector(sf::st_intersects(sf::st_geometry(x), sf::st_geometry(v1), sparse=FALSE))
     xhv <- expand.grid(cell_id2=1:sum(xh), cell_id1=1:sum(xv))
     xgrid <- dplyr::mutate(x, cell_id=1:nrow(x), cell_id1=!!xhv[,1], cell_id2=!!xhv[,2], .before=!!sfname)
     
@@ -1108,13 +1112,14 @@ st_maximum_attrib <- function(x, dist=1000, nshape=1, shape="circle", attrib_min
     attrib <- "estimate" 
     x$grid <- st_add_index(x$grid) 
     xorig <- x
-    cellsize <- geos::geos_length(st_bbox_segments(xorig$grid))[1:2]/c(max(xorig$grid$cell_id1), max(xorig$grid$cell_id2))
+    #cellsize <- geos::geos_length(st_bbox_segments(xorig$grid))[1:2]/c(max(xorig$grid$cell_id1), max(xorig$grid$cell_id2))
+    cellsize <- as.numeric(sf::st_length(st_bbox_segments(xorig$grid)))[1:2]/c(max(xorig$grid$cell_id1), max(xorig$grid$cell_id2))
     cellsize.ind <- ceiling(dist/cellsize)
 
-    ## sum is aggegrate statistic function
+    ## sum is aggregate statistic function
     .f <- sum
     shape <- match.arg(shape, c("circle", "rect"))
-    if (verbose & all(geos::geos_length(st_rectangle_segments(x$grid[1,]))>dist)) warning("dist is smaller than grid cell size so results may not be accurate", immediate.=TRUE)
+    # if (verbose & all(as.numeric(sf::st_length(st_rectangle_segments(x$grid[1,]))) >dist)) warning("dist is smaller than grid cell size so results may not be accurate", immediate.=TRUE)
     if (missing(attrib_min)) { missing_attrib_min <- TRUE; attrib_min <- min(x$grid[[attrib]]) } else { missing_attrib_min <- FALSE; nshape <- 100 }
     if (nshape<1) nshape <- 1
 
@@ -1122,7 +1127,6 @@ st_maximum_attrib <- function(x, dist=1000, nshape=1, shape="circle", attrib_min
     xattrib_max_prev <- 10*xattrib_max 
     xc.list <- NULL
     i <- 1
-    #while (((max(c(xattrib_max, xattrib_max_prev)) >= attrib_min) | (xattrib_max >= xattrib_max_prev)) & (i <= nshape))
     while ((abs(xattrib_max-xattrib_max_prev)/xattrib_max >= 0.1 | xattrib_max >= attrib_min) & (i <= nshape))
     {
         ## copy cell indices from xorig to modified x
@@ -1194,7 +1198,7 @@ st_filter_approx <- function(x, y, ind)
     xc <- st_get_contour(x, cont=ct)
     xc <- sf::st_cast(sf::st_cast(xc, to="MULTIPOLYGON"), to="POLYGON", warn=FALSE)
     xc <- sf::st_minimum_bounding_circle(xc)
-    xc$radius_mbc <- sqrt(geos::geos_area(xc)/pi)
+    xc$radius_mbc <- sqrt(as.numeric(sf::st_area(xc))/pi)
   
     ## search by increasing contour level 
     while (ct < 100 & sum(xc$radius_mbc<dist)<nshape) 
@@ -1202,7 +1206,7 @@ st_filter_approx <- function(x, y, ind)
         xc <- st_get_contour(x, cont=ct)
         xc <- sf::st_cast(sf::st_cast(xc, to="MULTIPOLYGON"), to="POLYGON", warn=FALSE)
         xc <- sf::st_minimum_bounding_circle(xc)
-        xc$radius_mbc <- sqrt(geos::geos_area(xc)/pi)
+        xc$radius_mbc <- sqrt(as.numeric(sf::st_area(xc))/pi)
         ct <- ct + cont_step
     } 
     xc <- dplyr::relocate(xc, "radius_mbc", .before=!!sfname)

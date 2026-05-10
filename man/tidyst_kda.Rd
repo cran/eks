@@ -82,11 +82,11 @@ s1$grid <- sf::st_filter(s1$grid, sf::st_convex_hull(sf::st_combine(s2$sf)))
 ## base R plot
 xlim <- c(1.2e5, 1.1e6); ylim <- c(6.1e6, 7.2e6)
 plot(wa, xlim=xlim, ylim=ylim)
-plot(s1, which_geometry="grid", add=TRUE, alpha=0.1, border=NA, legend=FALSE)
-plot(s1, add=TRUE, lwd=2)
+plot(s1, which_geometry="grid", add=TRUE, alpha=0.1, border=NA)
+plot(s1, add=TRUE, legend=FALSE, lwd=2)
 
 ## geom_sf plot
-gs1 <- ggplot(s1) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map() + 
+gs1 <- ggplot(s1) + geom_sf(data=wa, fill=NA) + theme_sf() + 
     geom_sf(data=s1$grid, aes(fill=label), alpha=0.1, colour=NA) 
 gs1 + geom_sf(data=st_get_contour(s1), aes(colour=species), fill=NA) +
     coord_sf(xlim=xlim, ylim=ylim)}

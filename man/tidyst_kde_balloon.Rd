@@ -75,7 +75,7 @@ plot(s2, add=TRUE, col=bcols, breaks=sb)
 layout(1)
 
 ## geom_sf plot
-gs <- ggplot(s3) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map()
+gs <- ggplot(s3) + geom_sf(data=wa, fill=NA) + theme_sf()
 gs + geom_sf(data=st_get_contour(s3, breaks=sb), aes(fill=estimate)) +
     coord_sf(xlim=xlim, ylim=ylim) + facet_wrap(~group)}
 }

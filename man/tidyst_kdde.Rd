@@ -54,7 +54,6 @@ st_kdde(x, deriv_order=1, ...)
 
 \examples{
 library(ggplot2)
-theme_set(theme_bw())
 data(crabs, package="MASS")
 ## 1-d density curvature estimate
 crabs1 <- dplyr::select(crabs, FL)
@@ -111,7 +110,7 @@ plot(s1, add=TRUE, which_deriv_ind=2, breaks=sb2)
 
 ## geom_sf plot
 glim <- coord_sf(xlim=xlim, ylim=ylim)
-gs <- ggplot(s1) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map()
+gs <- ggplot(s1) + geom_sf(data=wa, fill=NA) + theme_sf()
 ## filled contours with density derivative "percentage" labels w/o breaks
 ## aes(linetype=contline) suppresses displaying bounding box 
 gs + geom_sf(data=s1_cont2, aes(fill=contregion, linetype=contline), 

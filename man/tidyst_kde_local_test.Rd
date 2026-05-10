@@ -49,13 +49,11 @@ gt + geom_contour_filled_ks(aes(fill=after_stat(contregion)))
 
 \donttest{t2 <- tidy_kfs(hsct12)
 gt + geom_contour_ks(data=t1, aes(colour=after_stat(contregion))) +
-    geom_contour_filled_ks(data=t2, aes(fill=after_stat(contregion))) + 
-    colorspace::scale_fill_discrete_qualitative(palette="Dark2", 
-        rev=TRUE, nmax=2) + 
-    guides(fill=guide_legend(title="Signif curv"))}
+    geom_contour_filled_ks(data=t2, aes(fill=after_stat(contregion)), colour=1) + 
+    scale_fill_manual(values=7)
 
 ## geospatial local test between Grevillea species
-\donttest{data(wa)
+data(wa)
 data(grevilleasf)
 hakeoides <- dplyr::filter(grevilleasf, species=="hakeoides")
 paradoxa <- dplyr::filter(grevilleasf, species=="paradoxa")
@@ -66,13 +64,18 @@ s2 <- st_kfs(hakeoides)
 xlim <- c(1.2e5, 1.1e6); ylim <- c(6.1e6, 7.2e6)
 plot(wa, xlim=xlim, ylim=ylim)
 plot(s1, add=TRUE)
-plot(s2, add=TRUE, pos="bottom")
+
+plot(wa, xlim=xlim, ylim=ylim)
+plot(s1, col=NA, add=TRUE,
+     border=colorspace::qualitative_hcl(n=2, palette="Dark2", rev=TRUE))
+plot(s2, col=7, add=TRUE, pos="bottom")
 
 ## geom_sf plot
-gs <- ggplot(s1) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map() 
+gs <- ggplot(s1) + geom_sf(data=wa, fill=NA) + theme_sf() 
+gs + geom_sf(data=st_get_contour(s1), aes(fill=contregion)) +
+    coord_sf(xlim=xlim, ylim=ylim)
 gs + geom_sf(data=st_get_contour(s1), aes(colour=contregion), fill=NA) +
-    geom_sf(data=st_get_contour(s2), aes(fill=contregion)) + 
-    guides(fill=guide_legend(title="Signif curv")) + 
+    geom_sf(data=st_get_contour(s2), aes(fill=contregion), colour=1) + 
     scale_fill_manual(values=7) + coord_sf(xlim=xlim, ylim=ylim)}
 }
 

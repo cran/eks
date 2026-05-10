@@ -29,7 +29,6 @@ st_kcurv(x, ...)
 \examples{
 \donttest{## tidy kernel summary density curvature estimate
 library(ggplot2)
-theme_set(theme_bw())
 data(crabs, package="MASS")
 crabs2 <- dplyr::select(crabs, FL, CW)
 t1 <- tidy_kdde(crabs2, deriv_order=2)
@@ -51,7 +50,7 @@ plot(wa, xlim=xlim, ylim=ylim)
 plot(s2, add=TRUE)
 
 ## geom_sf plot
-gs1 <- ggplot(s2) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map()
+gs1 <- ggplot(s2) + geom_sf(data=wa, fill=NA) + theme_sf()
 gs1 + geom_sf(data=st_get_contour(s2), aes(fill=contperc)) +
     coord_sf(xlim=xlim, ylim=ylim)}
 }

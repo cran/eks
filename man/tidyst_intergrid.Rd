@@ -34,7 +34,7 @@ data(ales_grid, package="eks")
 
 ## incomplete 1 km x 1 km grid
 ## ind = #individuals in grid cells 
-gs <- ggplot() + ggthemes::theme_map() + 
+gs <- ggplot() + theme_sf() + 
     colorspace::scale_fill_continuous_sequential(palette="Heat", breaks=seq(0,6000,by=1000))  
 gs + geom_sf(data=ales_grid, aes(fill=ind))
 
@@ -44,7 +44,7 @@ gs + geom_sf(data=ales_sgrid, aes(fill=ind))
 
 ## geom_sf KDE plot
 ales_skde <- st_as_kde(ales_sgrid)
-ggplot(ales_skde) + ggthemes::theme_map() + 
+ggplot(ales_skde) + theme_sf() + 
     geom_sf(data=st_get_contour(ales_skde), aes(fill=contperc))
 }
 

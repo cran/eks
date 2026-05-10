@@ -114,9 +114,8 @@ plot(s4, add=TRUE, border=cols[4], col=NA, legend=FALSE)
 layout(1)
 
 ## geom_sf plots
-gs <- ggplot() + geom_sf(data=wa, fill=NA) + 
-    geom_sf(data=hakeoides_bbox, linetype="dotted", fill=NA) + 
-    ggthemes::theme_map() +
+gs <- ggplot() + geom_sf(data=wa, fill=NA) + theme_sf() + 
+    geom_sf(data=hakeoides_bbox, linetype="dotted", fill=NA) +
     colorspace::scale_colour_discrete_qualitative(palette="Set2")
 gs + geom_sf(data=st_get_contour(s5), aes(colour=group), fill=NA) + 
     coord_sf(xlim=xlim, ylim=ylim) + 

@@ -15,7 +15,7 @@ The \code{ales_grid} data set contains census data of 806 1 km x 1 km grid cells
 } 
 
 \source{
-Insee (2023). Revenus, pauvreté et niveau de vie en 2019 - Données carroyées [In French]. \url{https://www.insee.fr/fr/statistiques/7655464?sommaire=7655515}.  Accessed on 2025-01-16. 
+Insee (2023) \href{https://www.insee.fr/fr/statistiques/7655464?sommaire=7655515}{Revenus, pauvreté et niveau de vie en 2019 - Données carroyées [In French]}. Accessed on 2025-01-16. 
 }
 
 \keyword{datasets}

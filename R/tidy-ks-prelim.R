@@ -784,6 +784,12 @@ required_aes=c("x","y","z"),
 dropped_aes=c("z","weight") 
 )
 
+## local copy of ggtheme::theme_map
+theme_sf <- function() 
+{
+    theme(axis.line = element_blank(), axis.text = element_blank(), axis.ticks = element_blank(), axis.title = element_blank(), panel.background = element_blank(), panel.border = element_blank(), panel.grid = element_blank(), panel.spacing = unit(0, "lines"), plot.background = element_blank(), legend.justification = c(0,0), legend.position = c(0,0))
+}
+
 ## local copies of unexported functions from ggplot2
 .ggplot2_new_data_frame <- function(x=list(), n=NULL)
 {
@@ -813,9 +819,7 @@ dropped_aes=c("z","weight")
 
 .ggplot2_xyz_to_isobands <- function (data, breaks)
 {
-    isoband::isobands(x=sort(unique(data$x)), y=sort(unique(data$y)),
-        z=.ggplot2_isoband_z_matrix(data), levels_low=breaks[-length(breaks)],
-        levels_high=breaks[-1])
+    isoband::isobands(x=sort(unique(data$x)), y=sort(unique(data$y)), z=.ggplot2_isoband_z_matrix(data), levels_low=breaks[-length(breaks)], levels_high=breaks[-1])
 }
 
 .ggplot2_isoband_z_matrix <- function (data)
@@ -845,9 +849,7 @@ dropped_aes=c("z","weight")
     item_id <- rep(seq_along(iso), lengths)
     groups <- paste(group, sprintf("%03d", item_id), sprintf("%03d", ids), sep="-")
     groups <- factor(groups)
-    .ggplot2_new_data_frame(list(level=rep(levels, lengths), x=xs,
-        y=ys, piece=as.integer(groups), group=groups),
-        n=length(xs))
+    .ggplot2_new_data_frame(list(level=rep(levels, lengths), x=xs, y=ys, piece=as.integer(groups), group=groups), n=length(xs))
 }
 
 .ggplot2_iso_to_polygon <- function (iso, group=1)
@@ -864,7 +866,5 @@ dropped_aes=c("z","weight")
     item_id <- rep(seq_along(iso), lengths)
     groups <- paste(group, sprintf("%03d", item_id), sep="-")
     groups <- factor(groups)
-    .ggplot2_new_data_frame(list(level=rep(levels, lengths), x=xs,
-        y=ys, piece=as.integer(groups), group=groups, subgroup=ids),
-        n=length(xs))
+    .ggplot2_new_data_frame(list(level=rep(levels, lengths), x=xs, y=ys, piece=as.integer(groups), group=groups, subgroup=ids), n=length(xs))
 }

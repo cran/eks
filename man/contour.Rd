@@ -44,13 +44,14 @@ add_contour_breaks(x, breaks, digits, ...)
 \details{
     By default, the 5\%, 10\%, ..., 95\% contours are computed for an \code{st_k*} output, though a plot of 19 of them would be too crowded. \code{st_get_contour} selects a subset of these, as specified by \code{cont}. If a contour level in \code{cont} does not already exist or if absolute contour levels are specified in \code{breaks}, then the corresponding contours are computed. If \code{disjoint=TRUE} (default) then the contours are computed as a set of disjoint multipolygons: this allows for plotting without overlapping transparent colours. If \code{disjoint=FALSE} then the contours are overlapping and so their colours alpha-mixed, but they strictly satisfy the probabilistic definition, e.g. a 25\% contour region is the smallest region that contains 25\% of the probability mass defined by the kernel estimate, see \code{\link{geom_contour_ks}}.
 
-    Since these default probability contours are relative contour levels, they aren't suitable for producing a contour plot with fixed contour levels across all groups. It may require trial and error to obtain a single set of contour levels which is appropriate for all groups: one possible choice is provided by \code{contour_breaks}. 
+    Since these default probability contours are relative contour levels, they are not suitable for producing a contour plot with fixed contour levels across all groups. It may require trial and error to obtain a single set of contour levels which is appropriate for all groups: one possible choice is provided by \code{contour_breaks}. 
 }
 
 \seealso{\code{\link{geom_contour_ks}}}
 
 \examples{
 library(ggplot2)
+theme_set(theme_bw())
 data(crabs, package="MASS")
 ## tidy data 
 crabs2 <- dplyr::select(crabs, FL, CW)

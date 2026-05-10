@@ -60,7 +60,7 @@ plot(s2, add=TRUE, lty=3, pal=function(.){
     colorspace::qualitative_hcl(n=., palette="Set2", alpha=0.15)})
 
 ## geom_sf plot
-gs <- ggplot(s1) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map()
+gs <- ggplot(s1) + geom_sf(data=wa, fill=NA) + theme_sf()
 gs + geom_sf(data=s1$sf, aes(colour=label), alpha=0.5) + 
     geom_sf(data=s2, aes(fill=label), linetype="dotted", alpha=0.15) + 
     coord_sf(xlim=xlim, ylim=ylim) 

@@ -7,6 +7,7 @@ library(eks)
 library(colorspace)
 library(ggplot2)
 library(dplyr)
+set_theme(theme_bw())
 
 ## crabs data 
 data(crabs, package="MASS")
@@ -14,36 +15,36 @@ crabs2 <- select(crabs, FL, CW)
 xlab <- "Frontal lobe size (mm)"
 ylab <- "Carapace width (mm)"
 
-## -----------------------------------------------------------------------------
+## ----message=FALSE------------------------------------------------------------
 ## KDE contour plot + scatter plot
 tkde2 <- tidy_kde(crabs2)
 gkde2 <- ggplot(tkde2, aes(x=FL, y=CW)) + labs(x=xlab, y=ylab)
 gkde2 + geom_point_ks(colour=8) + geom_contour_ks(colour=1)
 
-## -----------------------------------------------------------------------------
+## ----message=FALSE------------------------------------------------------------
 ## geom_density_2d KDE contour plot + scatter plot
 mkde2 <- ggplot(crabs2, aes(x=FL, y=CW))
 mkde2 + geom_point(colour=8) + geom_density_2d(colour=1, bins=4)
 
-## -----------------------------------------------------------------------------
+## ----message=FALSE------------------------------------------------------------
 ## KDE filled contour plot
 gkde2 + geom_contour_filled_ks(colour=1) 
 
-## -----------------------------------------------------------------------------
+## ----message=FALSE------------------------------------------------------------
 ## KDE continuous colour scale plot
 gkde2 + geom_raster(aes(fill=estimate), interpolate=TRUE) + 
    scale_fill_continuous_sequential(palette="Heat")
 
-## ----fig.width=7--------------------------------------------------------------
+## ----message=FALSE, fig.width=7-----------------------------------------------
 crabs2g <- select(crabs, FL, CW, sp)
 crabs2g <- group_by(crabs2g, sp)
 tkde2g <- tidy_kde(crabs2g)
-gkde2g <- ggplot(tkde2g, aes(x=FL, y=CW, group=sp)) + labs(x=xlab, y=ylab, colour="Species") + 
-   scale_colour_manual(values=c(4, 7)) + 
-   guides(colour=guide_legend(title="Species"))
+gkde2g <- ggplot(tkde2g, aes(x=FL, y=CW, group=sp)) 
 
 ## facetted KDE contour plots + scatter plots
-gkde2g + geom_point_ks(colour=8) + 
+gkde2g + geom_point_ks(colour=8) + labs(x=xlab, y=ylab, colour="Species") + 
+   scale_colour_manual(values=c(4, 7)) + 
+   guides(colour=guide_legend(title="Species")) +
    geom_contour_ks(aes(colour=sp)) + facet_wrap(~sp) 
 
 ## ----fig.width=7--------------------------------------------------------------
@@ -76,8 +77,7 @@ plot(st_geometry(paradoxa), add=TRUE, col=6, pch=17, cex=0.5)
 mapsf::mf_legend(type="symb", val=c("Grevillea eryngioides", "Grevillea paradoxa"), 
    pal=c(3,6), pch=16:17, cex=c(1,1), title="Species", pos="bottomleft")
 ## geom_sf scatter plot 
-theme_set(ggthemes::theme_map())
-ggplot() + gwa + 
+ggplot() + gwa + theme_sf() +
    geom_sf(data=grevillea_ep, aes(colour=name, shape=name)) + 
    coord_sf(xlim=xlim, ylim=ylim) + scale_colour_manual(values=c(3, 6)) + 
    guides(colour=guide_legend(title="Species"), shape=guide_legend(title="Species"))
@@ -92,7 +92,7 @@ plot(skde1, add=TRUE, col=NA, border=1, legend=FALSE)
 
 ## -----------------------------------------------------------------------------
 ## geom_sf contour plot
-gs <- ggplot(skde1) + gwa + ggthemes::theme_map()
+gs <- ggplot(skde1) + gwa + theme_sf()
 gs + geom_sf(data=paradoxa, col=8, size=0.5) + 
    geom_sf(data=st_get_contour(skde1), colour=1, fill=NA) + 
    coord_sf(xlim=xlim, ylim=ylim)

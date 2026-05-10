@@ -114,7 +114,7 @@ plot(s1, add=TRUE)
 
 ## geom_sf plot
 ## suitable smoothing matrix gives optimally smoothed contours
-gs1 <- ggplot(s1) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map() 
+gs1 <- ggplot(s1) + geom_sf(data=wa, fill=NA) + theme_sf() 
 glim <- coord_sf(xlim=xlim, ylim=ylim)
 ## filled contour regions with density percentage labels
 gs1 + geom_sf(data=st_get_contour(s1), aes(fill=contperc)) + glim 
@@ -123,8 +123,7 @@ gs1 + geom_sf(data=st_get_contour(s1), aes(fill=estimate)) + glim
 gs1 + geom_sf(data=st_get_contour(s1), aes(fill=contregion)) + glim
 
 ## default smoothing in geom_density_2d_filled() is oversmoothed
-ggplot(hakeoides_coord) + geom_sf(data=wa, fill=NA) + 
-    ggthemes::theme_map() + 
+ggplot(hakeoides_coord) + geom_sf(data=wa, fill=NA) + theme_sf() + 
     colorspace::scale_fill_discrete_sequential(palette="Heat") + 
     geom_density_2d_filled(aes(x=X, y=Y), bins=4, colour=1) +
     guides(fill=guide_legend(title="Density", reverse=TRUE)) + glim
@@ -137,7 +136,7 @@ grevillea_gr <- dplyr::group_by(grevillea_gr, species)
 s2 <- st_kde(grevillea_gr)
 sb <- contour_breaks(s2, group=TRUE)
 
-gs3 <- ggplot(s2) + geom_sf(data=wa, fill=NA) + ggthemes::theme_map() +
+gs3 <- ggplot(s2) + geom_sf(data=wa, fill=NA) + theme_sf() +
     facet_wrap(~species)
 ## filled contour regions with density percentage labels w/o breaks
 gs3 + geom_sf(data=st_get_contour(s2), aes(fill=contperc)) +
